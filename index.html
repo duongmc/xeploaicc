@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Xếp loại công chức, NLĐ năm 2026 – KBNN khu vực XIII</title>
+<style>
+  :root {
+    /* Blue-Navy chủ đạo */
+    --navy-950: #081a30;
+    --navy-900: #0c2340;
+    --navy-800: #13315c;
+    --navy-700: #1b4373;
+    --navy-100: #e8f0f9;
+    --navy-50:  #f3f7fc;
+
+    /* Green-Heavy kết hợp */
+    --green-950: #042f26;
+    --green-900: #064e3b;
+    --green-800: #065f46;
+    --green-700: #047857;
+    --green-600: #0d8a68;
+    --green-100: #dcf4ec;
+    --green-50:  #eefaf5;
+
+    /* Trung tính & Trạng thái */
+    --bg: #edf2f6;
+    --card: #ffffff;
+    --line: #d9e2ec;
+    --line-2: #bcccdc;
+    --text: #102a43;
+    --text-2: #334e68;
+    --muted: #627d98;
+
+    --ok: #065f46;      --ok-l: #e6f6f0;    --ok-b: #6ee7b7;
+    --info: #1b4373;    --info-l: #e8f1fa;  --info-b: #93c5fd;
+    --warn: #92400e;    --warn-l: #fffbeb;  --warn-b: #fcd34d;
+    --err: #991b1b;     --err-l: #fef2f2;   --err-b: #fca5a5;
+
+    --r: 12px;
+    --shadow-sm: 0 1px 3px rgba(8, 26, 48, .06), 0 1px 2px rgba(8, 26, 48, .04);
+    --shadow-md: 0 6px 18px rgba(8, 26, 48, .10);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  h1, h2, h3, h4 { margin: 0; line-height: 1.3; }
+  .muted { color: var(--muted); }
+  .small { font-size: 12px; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ---------- Header (Blue-Navy → Green-Heavy) ---------- */
+  .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: linear-gradient(100deg, var(--navy-950) 0%, var(--navy-900) 46%, var(--green-900) 100%);
+    color: #fff;
+    border-bottom: 3px solid var(--green-600);
+    box-shadow: 0 4px 16px rgba(8, 26, 48, .22);
+  }
+  .hdr-row {
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: 11px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 11px;
+    background: linear-gradient(145deg, rgba(255,255,255,.18), rgba(6, 95, 70, .45));
+    border: 1px solid rgba(255,255,255,.28);
+    display: grid;
+    place-items: center;
+    flex: none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.2);
+  }
+  .logo svg { width: 24px; height: 24px; fill: #fde047; filter: drop-shadow(0 1px 2px rgba(0,0,0,.25)); }
+  .hdr-title h1 { font-size: 16.5px; font-weight: 700; letter-spacing: -.01em; color: #fff; }
+  .hdr-title p { margin: 2px 0 0; font-size: 12px; color: rgba(232, 244, 248, .85); }
+
+  .hdr-stats {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .stat-pill {
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.24);
+    border-radius: 10px;
+    padding: 4px 11px;
+    font-size: 12px;
+    display: flex;
+    gap: 7px;
+    align-items: baseline;
+    white-space: nowrap;
+    color: #e6f4f1;
+  }
+  .stat-pill b { font-size: 17px; color: #fff; font-variant-numeric: tabular-nums; }
+
+  .hdr-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .hbtn {
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.26);
+    color: #fff;
+    border-radius: 8px;
+    padding: 6px 11px;
+    font-size: 12px;
+    font-weight: 600;
+    transition: background .15s, border-color .15s, transform .1s;
+  }
+  .hbtn:hover { background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.45); }
+  .hbtn:active { transform: translateY(1px); }
+  .hbtn.danger { background: rgba(153, 27, 27, .48); border-color: rgba(252, 165, 165, .38); }
+  .hbtn.danger:hover { background: rgba(153, 27, 27, .72); }
+
+  /* ---------- Bố cục 2 cột: menu bước (trái) + nội dung (phải) ---------- */
+  .layout {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 18px 18px 44px;
+    display: grid;
+    grid-template-columns: 252px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+  }
+  .sidenav {
+    position: sticky;
+    top: 86px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 8px;
+    box-shadow: var(--shadow-sm);
+  }
+  .sidenav .nav-h {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted);
+    padding: 8px 10px 6px;
+  }
+  .step-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border: 0;
+    background: none;
+    border-radius: 9px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-2);
+    transition: background .15s, color .15s;
+  }
+  .step-btn:hover { background: var(--navy-50); }
+  .step-btn .n {
+    width: 25px;
+    height: 25px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 800;
+    background: var(--navy-100);
+    color: var(--navy-800);
+    flex: none;
+  }
+  .step-btn .lbl { flex: 1; line-height: 1.25; }
+  .step-btn .lbl small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; margin-top: 1px; }
+  .step-btn.active { background: var(--green-50); color: var(--green-900); box-shadow: inset 3px 0 0 var(--green-700); }
+  .step-btn.active .n { background: linear-gradient(135deg, var(--navy-800), var(--green-800)); color: #fff; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #cbd5e1; flex: none; }
+  .dot.ok { background: #10b981; } .dot.warn { background: #f59e0b; } .dot.err { background: #ef4444; }
+  .nav-note { font-size: 11.5px; color: var(--muted); padding: 10px 10px 4px; margin-top: 6px; border-top: 1px dashed var(--line); line-height: 1.45; }
+  .nav-note b { color: var(--text-2); }
+  .layout > main { min-width: 0; }
+  .hidden { display: none !important; }
+  .tab-panel { animation: fadeIn .18s ease; }
+  @keyframes fadeIn { from { opacity: .35; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .pager { display: flex; gap: 8px; flex-wrap: wrap; }
+  button.stat-pill { cursor: pointer; font: inherit; font-size: 12px; }
+  button.stat-pill:hover { background: rgba(255,255,255,.22); }
+  .hbtn.state { cursor: default; background: rgba(16, 185, 129, .18); border-color: rgba(110, 231, 183, .45); }
+  .hbtn.state.bad { background: rgba(153, 27, 27, .48); }
+
+  /* Thanh điểm cố định cuối màn hình (bước 3, 4) */
+  .scorebar {
+    position: sticky;
+    bottom: 12px;
+    z-index: 20;
+    margin-top: 4px;
+    background: rgba(255,255,255,.97);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--green-700);
+    border-radius: 12px;
+    padding: 10px 16px;
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    flex-wrap: wrap;
+    box-shadow: 0 -6px 18px rgba(8, 26, 48, .10);
+  }
+  .scorebar .sb-i { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .scorebar .sb-i b { color: var(--navy-900); font-size: 16px; font-variant-numeric: tabular-nums; }
+  .scorebar .sb-total b { color: var(--green-800); font-size: 21px; }
+  .scorebar .sb-sep { width: 1px; align-self: stretch; background: var(--line); }
+
+  /* Chọn quý xem chi tiết */
+  .seg { display: inline-flex; background: #f0f4f8; border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 3px; flex-wrap: wrap; }
+  .seg button { border: 0; background: none; padding: 6px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; color: var(--text-2); display: inline-flex; align-items: center; gap: 7px; }
+  .seg button:hover { background: #fff; }
+  .seg button.on { background: var(--navy-800); color: #fff; }
+
+  /* Bảng tình trạng file theo quý */
+  table.ui tr.mx-row { cursor: pointer; }
+  table.ui tr.mx-row:hover td { background: var(--green-50); }
+  .mx-ok { color: var(--green-700); font-weight: 800; }
+  .mx-f { display: inline-block; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
+  .empty { padding: 26px; text-align: center; color: var(--muted); border: 1px dashed var(--line-2); border-radius: 10px; background: #fbfdfe; }
+
+  /* ---------- Layout & Cards ---------- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 18px;
+    scroll-margin-top: 88px;
+    overflow: hidden;
+  }
+  .card-h {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    background: linear-gradient(90deg, var(--navy-50) 0%, #f7fbfa 100%);
+    border-left: 4px solid var(--navy-800);
+  }
+  .card-h.green-accent { border-left-color: var(--green-800); }
+  .card-h-title { display: flex; align-items: center; gap: 10px; }
+  .step-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--navy-800), var(--green-800));
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+  .card-h h2 { font-size: 16.5px; color: var(--navy-900); font-weight: 700; }
+  .card-h p { margin: 4px 0 0; color: var(--muted); font-size: 13px; max-width: 900px; }
+  .card-b { padding: 18px 20px; }
+
+  .sec-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--navy-900);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin: 2px 0 11px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sec-title::before {
+    content: "";
+    width: 4px;
+    height: 16px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, var(--green-700), var(--navy-800));
+  }
+
+  /* ---------- Form Controls ---------- */
+  .grid { display: grid; gap: 14px; }
+  .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-2);
+    margin-bottom: 5px;
+  }
+  .field .hint { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+  .inp {
+    width: 100%;
+    border: 1px solid var(--line-2);
+    border-radius: 9px;
+    padding: 8px 11px;
+    background: #fff;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+  }
+  .inp:hover:not([readonly]) { border-color: #829ab1; }
+  .inp:focus {
+    border-color: var(--green-700);
+    box-shadow: 0 0 0 3px rgba(6, 95, 70, .15);
+  }
+  .inp[readonly] {
+    background: var(--green-50);
+    border-color: #b7e4d4;
+    color: var(--green-900);
+    font-weight: 700;
+  }
+  textarea.inp { resize: vertical; line-height: 1.55; }
+  .inp.sm { padding: 5px 8px; font-size: 13px; border-radius: 7px; }
+  .inp.invalid { border-color: var(--err); background: var(--err-l); color: var(--err); }
+  .inp.score { text-align: center; font-weight: 700; min-width: 76px; }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    border: 1px solid transparent;
+    border-radius: 9px;
+    padding: 8px 15px;
+    font-weight: 600;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: background .15s, border-color .15s, box-shadow .15s, transform .1s;
+    white-space: nowrap;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--navy-800); color: #fff; box-shadow: 0 2px 6px rgba(19, 49, 92, .22); }
+  .btn-primary:hover { background: var(--navy-900); }
+  .btn-green {
+    background: linear-gradient(135deg, var(--green-800), var(--green-700));
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(6, 95, 70, .28);
+  }
+  .btn-green:hover { background: linear-gradient(135deg, var(--green-900), var(--green-800)); }
+  .btn-ghost { background: #fff; border-color: var(--line-2); color: var(--navy-800); }
+  .btn-ghost:hover { background: var(--navy-50); border-color: var(--navy-700); }
+  .btn-xs { padding: 4px 10px; font-size: 12px; border-radius: 7px; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  /* ---------- Badges & Chips ---------- */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .b-none { background: #f0f4f8; color: #486581; border-color: #bcccdc; }
+  .b-xs   { background: var(--ok-l); color: var(--ok); border-color: var(--ok-b); }
+  .b-tot  { background: var(--info-l); color: var(--info); border-color: var(--info-b); }
+  .b-ht   { background: var(--warn-l); color: var(--warn); border-color: var(--warn-b); }
+  .b-k    { background: var(--err-l); color: var(--err); border-color: var(--err-b); }
+
+  .chip {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin: 1px 3px 1px 0;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .chip.d { background: var(--navy-50); color: var(--navy-800); border-color: #b6cde8; }
+  .chip.x { background: var(--green-50); color: var(--green-800); border-color: #9be0c8; }
+  .chip.m { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+
+  /* ---------- KPI Cards ---------- */
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .kpi {
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    padding: 13px 15px;
+    background: #fff;
+    border-top: 3px solid var(--navy-800);
+  }
+  .kpi .k-l { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .kpi .k-v {
+    font-size: 25px;
+    font-weight: 800;
+    color: var(--navy-900);
+    line-height: 1.2;
+    margin-top: 3px;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi .k-v small { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .kpi .k-s { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+  .kpi.accent {
+    background: linear-gradient(145deg, var(--navy-900) 0%, var(--green-900) 100%);
+    border-color: var(--green-800);
+    border-top-color: var(--green-600);
+    color: #fff;
+  }
+  .kpi.accent .k-l { color: rgba(220, 244, 236, .88); }
+  .kpi.accent .k-v { color: #fff; }
+  .kpi.accent .k-v small { color: rgba(220, 244, 236, .75); }
+  .kpi.accent .k-s { color: rgba(220, 244, 236, .85); }
+  .kpi.green-top { border-top-color: var(--green-700); background: var(--green-50); border-color: #c2e8db; }
+
+  /* ---------- Tables ---------- */
+  .tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  table.ui { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.ui th {
+    background: var(--navy-900);
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 10px;
+    text-align: left;
+    font-size: 12.5px;
+    vertical-align: bottom;
+    border-bottom: 2px solid var(--green-700);
+  }
+  table.ui th .small { color: rgba(220, 244, 236, .82); font-weight: 500; }
+  table.ui td { padding: 9px 10px; border-top: 1px solid var(--line); vertical-align: top; }
+  table.ui tbody tr:hover td { background: #f8fbfd; }
+  table.ui td.c, table.ui th.c { text-align: center; }
+  table.ui tr.r-total td {
+    background: linear-gradient(90deg, var(--navy-100) 0%, var(--green-100) 100%);
+    font-weight: 800;
+    color: var(--navy-950);
+    font-size: 14px;
+    vertical-align: middle;
+    border-top: 2px solid var(--green-800);
+  }
+  .tot { font-size: 16.5px; font-variant-numeric: tabular-nums; color: var(--green-900); }
+  .basis { font-size: 11px; color: var(--muted); line-height: 1.35; margin-top: 4px; text-align: center; }
+
+  /* ---------- Dropzone & Import Log ---------- */
+  .drop {
+    display: block;
+    border: 2px dashed #5d8aa8;
+    border-radius: 12px;
+    padding: 24px 18px;
+    text-align: center;
+    background: linear-gradient(180deg, var(--navy-50) 0%, var(--green-50) 100%);
+    transition: background .15s, border-color .15s, box-shadow .15s;
+    cursor: pointer;
+  }
+  .drop:hover { border-color: var(--green-700); box-shadow: 0 0 0 3px rgba(6, 95, 70, .09); }
+  .drop.over { background: var(--green-100); border-color: var(--green-800); box-shadow: 0 0 0 4px rgba(6, 95, 70, .16); }
+  .drop .drop-ic {
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 8px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--navy-800), var(--green-800));
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .drop .big { font-size: 15px; font-weight: 700; color: var(--navy-900); }
+  .log { margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; max-height: 240px; overflow: auto; background: #fff; }
+  .log:empty { display: none; }
+  .log-i { display: flex; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .log-i:last-child { border-bottom: 0; }
+  .log-i .st {
+    flex: none;
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 11px;
+    margin-top: 1px;
+  }
+  .log-i.ok .st { background: var(--green-700); }
+  .log-i.bad .st { background: var(--err); }
+  .log-i.wn .st { background: #d97706; }
+
+  /* ---------- Quarter Details ---------- */
+  .qd-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+  .qd {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--navy-700);
+    border-radius: 10px;
+    padding: 12px 14px;
+    background: #fbfdfe;
+    font-size: 13px;
+  }
+  .qd.has-data { border-left-color: var(--green-700); }
+  .qd h4 {
+    font-size: 14px;
+    color: var(--navy-900);
+    margin-bottom: 6px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .qd .row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px dotted var(--line); }
+  .qd .row:last-child { border-bottom: 0; }
+  .qd .row b { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--navy-900); }
+  .qd .src { font-size: 11.5px; color: var(--green-800); margin: 8px 0 3px; font-weight: 700; word-break: break-word; }
+  .qd .w { color: var(--warn); font-size: 12px; margin-top: 5px; background: var(--warn-l); padding: 4px 8px; border-radius: 6px; border: 1px solid #fde68a; }
+
+  /* ---------- Conditions & Flow ---------- */
+  .tgl {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    cursor: pointer;
+    background: #fff;
+    margin-bottom: 8px;
+    font-size: 13px;
+    transition: border-color .15s, background .15s;
+  }
+  .tgl:hover { border-color: #9fb3c8; background: var(--navy-50); }
+  .tgl:has(input:checked) { border-color: var(--green-700); background: var(--green-50); }
+  .tgl input { margin-top: 3px; width: 16px; height: 16px; accent-color: var(--green-800); flex: none; }
+  .tgl .ref { display: block; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
+  .flow { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; margin-top: 14px; }
+  .flow .fs {
+    flex: 1;
+    min-width: 160px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 13px;
+    background: var(--navy-50);
+  }
+  .flow .fs:last-child {
+    background: var(--green-50);
+    border-color: #9be0c8;
+  }
+  .flow .fs .t { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+  .flow .fs .v { font-weight: 700; margin-top: 3px; font-size: 13px; color: var(--navy-900); }
+  .flow .fs:last-child .v { color: var(--green-900); }
+  .flow .arrow { display: grid; place-items: center; color: var(--green-700); font-weight: 800; font-size: 16px; }
+
+  /* ---------- Checks ---------- */
+  .chk { display: flex; gap: 11px; padding: 10px 18px; border-bottom: 1px solid var(--line); align-items: flex-start; font-size: 13px; }
+  .chk:last-child { border-bottom: 0; }
+  .chk.err { background: #fff8f8; }
+  .chk.ok { background: var(--green-50); }
+  .chk .ic {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 800;
+    color: #fff;
+    flex: none;
+    margin-top: 1px;
+  }
+  .chk.err .ic { background: var(--err); }
+  .chk.warn .ic { background: #d97706; }
+  .chk.ok .ic { background: var(--green-700); }
+  .chk.info .ic { background: var(--navy-700); }
+
+  details.law summary { cursor: pointer; font-weight: 700; color: var(--navy-900); list-style-position: inside; }
+  details.law summary:hover { color: var(--green-800); }
+  details.law ul { margin: 10px 0 0; padding-left: 20px; font-size: 13px; color: var(--text-2); }
+  details.law li { margin: 5px 0; }
+
+  #toasts { position: fixed; top: 82px; right: 16px; z-index: 70; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+  .toast {
+    pointer-events: auto;
+    padding: 10px 15px;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 13px;
+    max-width: 390px;
+    box-shadow: var(--shadow-md);
+    transition: opacity .3s;
+  }
+  .toast.success { background: var(--green-800); }
+  .toast.error { background: var(--err); }
+  .toast.info { background: var(--navy-800); }
+
+  /* ---------- Phiếu (khổ A4, Times New Roman – giữ chuẩn thể thức hành chính) ---------- */
+  .preview-scroll {
+    overflow-x: auto;
+    padding: 12px;
+    background: linear-gradient(180deg, #dce6f0 0%, #d4e3df 100%);
+    border-radius: 10px;
+    border: 1px solid var(--line);
+  }
+  .paper {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 14pt;
+    background: #fff;
+    color: #000;
+    width: 210mm;
+    max-width: none;
+    min-height: 297mm;
+    margin: 12px auto;
+    padding: 20mm 15mm 20mm 30mm;
+    box-shadow: 0 10px 28px rgba(8, 26, 48, .18);
+    line-height: 1.3;
+    display: flex;
+    flex-direction: column;
+  }
+  .paper p { margin: 0; }
+  .ph-head { display: grid; grid-template-columns: 44% 56%; text-align: center; margin: 0 -6mm; font-size: 13pt; }
+  .ph-head .rule { width: 42%; margin: 1px auto 0; border-top: 1px solid #000; }
+  .ph-head .rule.w { width: 62%; }
+  .ph-title { text-align: center; font-weight: bold; margin-top: 20pt; }
+  .ph-year { text-align: center; font-weight: bold; margin-bottom: 12pt; }
+  .ph-info p { margin: 4pt 0; }
+  .ph-info-row { display: flex; align-items: baseline; gap: 4pt; margin: 4pt 0; }
+  .ph-info-row .ph-fill { flex: 1; border-bottom: 1px dotted #000; height: 1em; min-width: 40pt; }
+  .ph-sec { font-weight: bold; margin: 10pt 0 6pt; }
+  table.ph-tbl { width: 100%; border-collapse: collapse; }
+  table.ph-tbl th, table.ph-tbl td { border: 1px solid #000; padding: 6pt 5pt; text-align: center; vertical-align: middle; height: 30pt; }
+  table.ph-tbl th { font-weight: bold; }
+  .ph-box { margin: 3pt 0; }
+  .ph-box .bx { font-family: "Segoe UI Symbol", "MS Gothic", sans-serif; font-size: 13pt; margin-right: 6pt; }
+  .ph-sign { display: grid; grid-template-columns: 36% 64%; margin-top: 12pt; }
+  .ph-sign .s { text-align: center; }
+  .ph-sign .gap { height: 62pt; }
+  .ph-dots { margin: 6pt 0; letter-spacing: 1px; overflow: hidden; white-space: nowrap; }
+  .ph-pre { white-space: pre-wrap; text-align: justify; margin: 4pt 0; }
+  .ph-fn { margin-top: auto; padding-top: 18pt; font-size: 10pt; }
+  .ph-fn .fr { width: 50mm; border-top: 1px solid #000; margin-bottom: 3pt; }
+  sup { font-size: 70%; }
+
+  @media (max-width: 1100px) {
+    .kpis { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 960px) {
+    .layout { grid-template-columns: minmax(0, 1fr); padding: 12px 12px 30px; }
+    .sidenav { position: static; display: flex; overflow-x: auto; gap: 4px; padding: 6px; }
+    .sidenav .nav-h, .nav-note { display: none; }
+    .step-btn { width: auto; flex: none; }
+    .step-btn .lbl small { display: none; }
+    .g3, .g4, .qd-grid { grid-template-columns: 1fr 1fr; }
+    .app-header { position: static; }
+  }
+  @media (max-width: 640px) {
+    .g2, .g3, .g4, .qd-grid, .kpis { grid-template-columns: 1fr; }
+    .hdr-title p { display: none; }
+    .hdr-stats { margin-left: 0; }
+    .card-h, .card-b { padding-left: 14px; padding-right: 14px; }
+    .scorebar { gap: 10px; }
+  }
+
+  @page { size: A4 portrait; margin: 20mm 15mm 20mm 30mm; }
+  @media print {
+    body { background: #fff; }
+    .no-print, #toasts { display: none !important; }
+    .layout { display: block; padding: 0; max-width: none; }
+    .tab-panel { display: none !important; animation: none; }
+    #t6 { display: block !important; }
+    .card.print-card { border: 0; box-shadow: none; margin: 0; overflow: visible; }
+    .card.print-card > .card-h { display: none; }
+    .card.print-card > .card-b { padding: 0; }
+    .preview-scroll { overflow: visible; padding: 0; background: none; border: 0; }
+    .paper { box-shadow: none; border: 0; margin: 0; padding: 0; width: auto; min-height: 0; }
+    .paper.p1 { min-height: 254mm; }
+    .paper + .paper { break-before: page; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header no-print">
+  <div class="hdr-row">
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.8 5.8 21.2l1.6-7L2 9.5l7.1-.6z"/></svg></div>
+    <div class="hdr-title">
+      <h1>Chấm điểm, xếp loại chất lượng công chức, người lao động năm <span id="hdrYear">2026</span></h1>
+      <p>Kho bạc Nhà nước khu vực XIII · CV 8267/KBNN-TCCB ngày 20/11/2026 · NĐ 335/2025/NĐ-CP</p>
+    </div>
+    <div class="hdr-stats">
+      <button class="stat-pill" data-go="t4" title="Điểm trung bình cả năm – mở bước Xếp loại">Điểm TB năm <b id="pillAvg">–</b></button>
+      <span id="pillRank" class="badge b-none" data-go="t4" style="cursor:pointer" title="Mức xếp loại đề xuất">Chưa có điểm</span>
+      <button class="stat-pill" data-go="t5" title="Mở bước Rà soát hồ sơ"><span id="pillIssues">0 lỗi · 0 cảnh báo</span></button>
+    </div>
+    <div class="hdr-actions">
+      <span class="hbtn state" id="saveState" title="Dữ liệu tự lưu trên trình duyệt này">✓ Đã lưu</span>
+      <button class="hbtn" id="btnOpenJson" title="Mở tệp sao lưu .json">📂 Mở sao lưu</button>
+      <button class="hbtn" id="btnSaveJson" title="Tải tệp sao lưu .json">💾 Lưu sao lưu</button>
+      <button class="hbtn danger" id="btnReset">Xóa dữ liệu</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidenav no-print" aria-label="Các bước xếp loại">
+    <div class="nav-h">Quy trình xếp loại</div>
+    <button class="step-btn" data-tab="t1" data-go="t1"><span class="n">1</span><span class="lbl">Nạp file các quý<small>Phiếu Mẫu 01 · Biểu chấm điểm</small></span><span class="dot" id="dot-t1"></span></button>
+    <button class="step-btn" data-tab="t2" data-go="t2"><span class="n">2</span><span class="lbl">Thông tin trên phiếu<small>Cá nhân, đơn vị, ngày ký</small></span><span class="dot" id="dot-t2"></span></button>
+    <button class="step-btn" data-tab="t3" data-go="t3"><span class="n">3</span><span class="lbl">Điểm theo quý<small>Tiêu chí chung + KQNV</small></span><span class="dot" id="dot-t3"></span></button>
+    <button class="step-btn" data-tab="t4" data-go="t4"><span class="n">4</span><span class="lbl">Xếp loại chất lượng<small>Mức theo điểm, điều kiện</small></span><span class="dot" id="dot-t4"></span></button>
+    <button class="step-btn" data-tab="t5" data-go="t5"><span class="n">5</span><span class="lbl">Rà soát hồ sơ<small>Lỗi, cảnh báo, căn cứ</small></span><span class="dot" id="dot-t5"></span></button>
+    <button class="step-btn" data-tab="t6" data-go="t6"><span class="n">6</span><span class="lbl">Phiếu &amp; kết xuất<small>Xem trước · In · Word</small></span><span class="dot" id="dot-t6"></span></button>
+    <div class="nav-note">Chấm <b>xanh</b>: đã đủ · <b>vàng</b>: cần xem lại · <b>đỏ</b>: có lỗi.<br>Dữ liệu tự lưu trên trình duyệt này, không gửi đi đâu.</div>
+  </nav>
+
+  <main>
+    <!-- BƯỚC 1 · NẠP FILE -->
+    <section id="t1" class="tab-panel">
+      <div class="card">
+        <div class="card-h">
+          <div>
+            <div class="card-h-title"><span class="step-badge">1</span><h2>Nạp file các quý</h2></div>
+            <p><b>Phiếu theo dõi, đánh giá (Mẫu 01, .docx)</b> → điểm tiêu chí chung · <b>Biểu chấm điểm tiêu chí KQTHNV (.xlsx)</b> → % kết quả thực hiện nhiệm vụ của quý. Công cụ tự nhận quý theo nội dung file và kiểm tra công thức.</p>
+          </div>
+          <div class="pager"><button class="btn btn-primary" data-go="t2">Tiếp tục →</button></div>
+        </div>
+        <div class="card-b">
+          <label class="drop" id="drop">
+            <input type="file" id="fileInp" multiple accept=".docx,.xlsx,.json" hidden />
+            <div class="drop-ic" aria-hidden="true">⬆</div>
+            <div class="big">Kéo thả file .docx / .xlsx vào đây, hoặc bấm để chọn</div>
+            <div class="muted small" style="margin-top:4px">Chọn được nhiều file cùng lúc. Nạp lại file cùng quý sẽ ghi đè dữ liệu nguồn đó. File .doc/.xls cũ: mở bằng Word/Excel → Lưu thành .docx/.xlsx.</div>
+          </label>
+
+          <div class="sec-title" style="margin-top:20px">Tình trạng dữ liệu theo quý <span class="muted small" style="text-transform:none;letter-spacing:0;font-weight:400">· bấm vào một dòng để xem chi tiết</span></div>
+          <div class="tbl-wrap">
+            <table class="ui">
+              <thead><tr><th class="c" style="width:80px">Quý</th><th>Phiếu Mẫu 01 (.docx)</th><th>Biểu chấm điểm (.xlsx)</th><th class="c">Chung</th><th class="c">KQNV</th><th class="c">Tổng</th></tr></thead>
+              <tbody id="matrix"></tbody>
+            </table>
+          </div>
+
+          <div class="sec-title" style="margin-top:20px">
+            <span>Nhật ký nạp file</span>
+            <button class="btn btn-ghost btn-xs" id="btnClearLog" style="text-transform:none;letter-spacing:0;margin-left:auto">Xóa nhật ký</button>
+          </div>
+          <div class="log" id="log"></div>
+          <div class="empty" id="logEmpty">Chưa nạp file nào.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BƯỚC 2 · THÔNG TIN -->
+    <section id="t2" class="tab-panel hidden">
+      <div class="card">
+        <div class="card-h">
+          <div>
+            <div class="card-h-title"><span class="step-badge">2</span><h2>Thông tin trên phiếu</h2></div>
+            <p>Tự điền từ file khi ô còn trống. Có thể sửa trực tiếp.</p>
+          </div>
+          <div class="pager"><button class="btn btn-ghost" data-go="t1">← Quay lại</button><button class="btn btn-primary" data-go="t3">Tiếp tục →</button></div>
+        </div>
+        <div class="card-b">
+          <div class="sec-title">Người được xếp loại</div>
+          <div class="grid g2">
+            <div class="field"><label>Họ và tên <span style="color:var(--err)">*</span></label><input class="inp" data-info="hoTen" placeholder="Nhập họ và tên..." /></div>
+            <div class="field"><label>Chức vụ, chức danh</label><input class="inp" data-info="chucVu" placeholder="vd: Chuyên viên" /></div>
+            <div class="field"><label>Đơn vị công tác</label><input class="inp" data-info="donVi" placeholder="vd: Phòng ..." /></div>
+            <div class="field"><label>Đối tượng</label>
+              <select class="inp" data-info="doiTuong"><option value="cc">Công chức</option><option value="nld">Người lao động</option></select>
+              <div class="hint">Đổi tiêu đề phiếu: “…CÔNG CHỨC” / “…NGƯỜI LAO ĐỘNG”.</div></div>
+          </div>
+
+          <div class="sec-title" style="margin-top:22px">Đơn vị &amp; thể thức phiếu</div>
+          <div class="grid g3">
+            <div class="field"><label>Cơ quan cấp trên (dòng 1 góc trái)</label><input class="inp" data-info="capTren" /></div>
+            <div class="field"><label>Tên đơn vị (dòng 2 góc trái)</label><input class="inp" data-info="tenDonVi" /></div>
+            <div class="field"><label>Năm đánh giá</label><input class="inp" data-info="nam" inputmode="numeric" /></div>
+            <div class="field"><label>Địa danh ký</label><input class="inp" data-info="diaDanh" /></div>
+            <div class="field"><label>Dấu thập phân trên phiếu</label>
+              <select class="inp" data-info="dec"><option value=",">Dấu phẩy (89,5)</option><option value=".">Dấu chấm (89.5)</option></select></div>
+          </div>
+
+          <div class="sec-title" style="margin-top:22px">Ngày ký &amp; người có thẩm quyền</div>
+          <div class="grid g3">
+            <div class="field"><label>Ngày công chức tự xếp loại</label><input type="date" class="inp" data-info="ngayTu" /><div class="hint">Để trống → in “ngày …. tháng ….”.</div></div>
+            <div class="field"><label>Ngày cấp có thẩm quyền xếp loại</label><input type="date" class="inp" data-info="ngayCap" /></div>
+            <div class="field"><label>Họ tên người có thẩm quyền xếp loại</label><input class="inp" data-info="nguoiCap" placeholder="Để trống → in dòng chấm" /></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BƯỚC 3 · ĐIỂM THEO QUÝ -->
+    <section id="t3" class="tab-panel hidden">
+      <div class="card">
+        <div class="card-h green-accent">
+          <div>
+            <div class="card-h-title"><span class="step-badge">3</span><h2>Điểm theo dõi, đánh giá theo quý</h2></div>
+            <p>Tổng điểm quý = Tiêu chí chung (≤ 30) + KQNV (≤ 70). KQNV = % quý từ biểu xlsx (làm tròn 2 chữ số) × 70, làm tròn 2 chữ số. Không có xlsx thì lấy KQNV ghi trên phiếu docx hoặc nhập tay.</p>
+          </div>
+          <div class="pager"><button class="btn btn-ghost" data-go="t2">← Quay lại</button><button class="btn btn-primary" data-go="t4">Tiếp tục →</button></div>
+        </div>
+        <div class="card-b">
+          <div class="tbl-wrap">
+            <table class="ui">
+              <thead><tr>
+                <th class="c">Quý</th><th class="c">Tiêu chí chung<br><span class="small">(tối đa 30)</span></th>
+                <th class="c">% KQNV của quý<br><span class="small">(từ xlsx)</span></th>
+                <th class="c">Điểm KQNV<br><span class="small">(tối đa 70)</span></th>
+                <th class="c">Tổng điểm<br><span class="small">theo dõi, đánh giá</span></th>
+                <th>Nguồn</th><th>Ghi chú (in trên phiếu)</th><th></th>
+              </tr></thead>
+              <tbody id="qBody"></tbody>
+              <tfoot><tr class="r-total">
+                <td colspan="4">Tổng điểm trung bình cả năm <span class="small muted" id="avgHow"></span></td>
+                <td class="c"><span class="tot" id="avgVal">–</span></td>
+                <td colspan="3"><input class="inp sm" data-rank="avgNote" placeholder="Ghi chú dòng tổng năm (để trống → tự ghi khi thiếu quý)" /></td>
+              </tr></tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">
+          <div><h2>Chi tiết nguồn số liệu</h2><p>Điểm từng tiêu chí trên phiếu Mẫu 01, điểm từng tháng trong biểu xlsx và các điểm không thống nhất.</p></div>
+          <div class="seg" id="qdSeg"></div>
+        </div>
+        <div class="card-b" id="qDetails"></div>
+      </div>
+    </section>
+
+    <!-- BƯỚC 4 · XẾP LOẠI -->
+    <section id="t4" class="tab-panel hidden">
+      <div class="card">
+        <div class="card-h green-accent">
+          <div>
+            <div class="card-h-title"><span class="step-badge">4</span><h2>Xếp loại chất lượng</h2></div>
+            <p>Điều 20 NĐ 335/2025: ≥ 90 Hoàn thành xuất sắc · 70 – dưới 90 Hoàn thành tốt · 50 – dưới 70 Hoàn thành · dưới 50 Không hoàn thành. So ngưỡng trên điểm trung bình đã làm tròn 2 chữ số.</p>
+          </div>
+          <div class="pager"><button class="btn btn-ghost" data-go="t3">← Quay lại</button><button class="btn btn-primary" data-go="t5">Tiếp tục →</button></div>
+        </div>
+        <div class="card-b">
+          <div class="kpis">
+            <div class="kpi accent"><div class="k-l">Điểm trung bình cả năm</div><div class="k-v" id="kAvg">–</div><div class="k-s" id="kAvgS"></div></div>
+            <div class="kpi"><div class="k-l">Số quý được tính</div><div class="k-v" id="kN">0<small>/4</small></div><div class="k-s" id="kNS"></div></div>
+            <div class="kpi"><div class="k-l">Mức theo điểm</div><div class="k-v" style="font-size:15px;margin-top:8px" id="kRankScore">–</div></div>
+            <div class="kpi green-top"><div class="k-l">Mức đề xuất (sau điều kiện)</div><div class="k-v" style="font-size:15px;margin-top:8px" id="kRankFinal">–</div></div>
+          </div>
+          <div class="flow" id="flow"></div>
+        </div>
+      </div>
+
+      <div class="grid g2">
+        <div class="card" style="margin-bottom:0">
+          <div class="card-h"><div><h2>Trường hợp đặc biệt</h2><p>Đánh dấu nếu có – công cụ tự hạ mức hoặc không xếp loại.</p></div></div>
+          <div class="card-b">
+            <label class="tgl"><input type="checkbox" data-cond="suyThoai" /><span>Bị cấp có thẩm quyền kết luận có biểu hiện suy thoái về tư tưởng chính trị, đạo đức, lối sống, “tự diễn biến”, “tự chuyển hóa”; vi phạm điều đảng viên không được làm; vi phạm trách nhiệm nêu gương<span class="ref">→ Không hoàn thành nhiệm vụ (Điều 20 khoản 4 điểm b)</span></span></label>
+            <label class="tgl"><input type="checkbox" data-cond="kyLuat" /><span>Có hành vi vi phạm liên quan hoạt động công vụ bị kỷ luật từ khiển trách trở lên trong năm đánh giá (kỷ luật đảng hoặc hành chính)<span class="ref">→ Không hoàn thành nhiệm vụ (Điều 20 khoản 4 điểm c; Điều 11 khoản 3)</span></span></label>
+            <label class="tgl"><input type="checkbox" data-cond="thamNhung" /><span>Đơn vị thuộc thẩm quyền phụ trách, quản lý trực tiếp liên quan tham ô, tham nhũng, lãng phí và bị xử lý (đối với lãnh đạo, quản lý)<span class="ref">→ Không hoàn thành nhiệm vụ (Điều 20 khoản 4 điểm d)</span></span></label>
+            <label class="tgl"><input type="checkbox" data-cond="duoi6" /><span>Thời gian công tác trong năm chưa đủ 06 tháng (không thuộc trường hợp nghỉ ốm, thai sản…)<span class="ref">→ Không xếp loại chất lượng (Điều 11 khoản 1)</span></span></label>
+            <label class="tgl" style="margin-bottom:0"><input type="checkbox" data-cond="dauDon" /><span>Là người đứng đầu tổ chức – mức xếp loại không cao hơn mức của tập thể (Điều 20 khoản 6)
+              <select class="inp sm" data-cond="tapThe" style="margin-top:6px"><option value="">— Mức xếp loại của tập thể —</option><option value="0">Hoàn thành xuất sắc nhiệm vụ</option><option value="1">Hoàn thành tốt nhiệm vụ</option><option value="2">Hoàn thành nhiệm vụ</option><option value="3">Không hoàn thành nhiệm vụ</option></select></span></label>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:0">
+          <div class="card-h"><div><h2>Đánh dấu trên phiếu</h2><p>Mục II, III, IV của Phiếu xếp loại chất lượng.</p></div></div>
+          <div class="card-b">
+            <div class="field"><label>Mục II – Công chức tự đánh giá, xếp loại</label>
+              <select class="inp" data-rank="self">
+                <option value="auto">Theo mức đề xuất của công cụ (tự động)</option>
+                <option value="0">Hoàn thành xuất sắc nhiệm vụ</option><option value="1">Hoàn thành tốt nhiệm vụ</option>
+                <option value="2">Hoàn thành nhiệm vụ</option><option value="3">Không hoàn thành nhiệm vụ</option>
+                <option value="">Để trống (đánh dấu tay khi in)</option>
+              </select></div>
+            <div class="field" style="margin-top:12px"><label>Mục III – Kết quả xếp loại của cấp có thẩm quyền</label>
+              <select class="inp" data-rank="cap">
+                <option value="">Để trống (cấp có thẩm quyền đánh dấu)</option>
+                <option value="auto">Theo mức đề xuất của công cụ</option>
+                <option value="0">Hoàn thành xuất sắc nhiệm vụ</option><option value="1">Hoàn thành tốt nhiệm vụ</option>
+                <option value="2">Hoàn thành nhiệm vụ</option><option value="3">Không hoàn thành nhiệm vụ</option>
+              </select></div>
+            <div class="field" style="margin-top:12px"><label>Mục IV – Đề xuất phương án xử lý</label>
+              <textarea class="inp" rows="5" data-rank="deXuat" placeholder="Để trống → in 2 dòng chấm để ghi tay"></textarea></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BƯỚC 5 · RÀ SOÁT -->
+    <section id="t5" class="tab-panel hidden">
+      <div class="card">
+        <div class="card-h">
+          <div>
+            <div class="card-h-title"><span class="step-badge">5</span><h2>Rà soát hồ sơ</h2></div>
+            <p id="chkSum"></p>
+          </div>
+          <div class="pager"><button class="btn btn-ghost" data-go="t4">← Quay lại</button><button class="btn btn-primary" data-go="t6">Xem phiếu →</button></div>
+        </div>
+        <div id="checks"></div>
+      </div>
+      <div class="card">
+        <div class="card-b">
+          <details class="law">
+            <summary>Căn cứ áp dụng trong công cụ</summary>
+            <ul>
+              <li><b>CV 8267/KBNN-TCCB ngày 20/11/2026</b> của KBNN: hướng dẫn theo dõi, đánh giá Quý IV và xếp loại năm 2026; Mẫu “Phiếu xếp loại chất lượng công chức” – tổng điểm trung bình cả năm bằng trung bình cộng 04 quý.</li>
+              <li><b>CV hướng dẫn của KBNN khu vực XIII ngày 21/11/2026</b>: Quý IV chấm điểm KQNV đến hết 20/11/2026, ước tính kết quả đến 31/12/2026; công chức lập Phiếu xếp loại năm 2026 theo Mẫu; Giám đốc KBNN khu vực XIII quyết định xếp loại; hồ sơ gửi Phòng TCHC trong ngày 25/11/2026.</li>
+              <li><b>NĐ 335/2025/NĐ-CP</b>: Điều 12 (tiêu chí chung tối đa 30, KQNV tối đa 70); Điều 16 (KQNV = (số lượng + chất lượng + tiến độ)/3; lãnh đạo chia 6); Điều 17 (điểm tháng/quý = tiêu chí chung + KQNV × 70); Điều 11, 19 (trường hợp đặc biệt, chưa đủ 06 tháng, nghỉ ốm/thai sản tính theo thời gian thực tế); Điều 20 (mức xếp loại, tỷ lệ HTXS ≤ 20% số HTT, người đứng đầu không cao hơn tập thể).</li>
+              <li><b>Quy tắc làm tròn đã thống nhất</b>: % KQNV quý làm tròn 2 chữ số (vd 92,847% → 92,85%) → × 70 → làm tròn 2 chữ số (64,995 → 65,00). Điểm năm = trung bình các quý có đủ điểm, làm tròn 2 chữ số rồi mới so ngưỡng xếp loại.</li>
+            </ul>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- BƯỚC 6 · PHIẾU -->
+    <section id="t6" class="tab-panel hidden">
+      <div class="card print-card">
+        <div class="card-h green-accent no-print">
+          <div>
+            <div class="card-h-title"><span class="step-badge">6</span><h2>Phiếu xếp loại chất lượng (mẫu kèm CV 8267/KBNN-TCCB)</h2></div>
+            <p>Times New Roman, khổ A4 (lề 2 – 1,5 – 2 – 3 cm). <span id="exportWarn" style="color:var(--err);font-weight:600"></span></p>
+          </div>
+          <div class="pager">
+            <button class="btn btn-ghost" data-go="t5">← Quay lại</button>
+            <button class="btn btn-primary" id="btnPrint">🖨 In / Lưu PDF</button>
+            <button class="btn btn-green" id="btnDocx">⬇ Xuất Word (.docx)</button>
+          </div>
+        </div>
+        <div class="card-b">
+          <div class="preview-scroll" id="phieu"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="scorebar no-print hidden" id="scorebar">
+      <div class="sb-i">Quý I <b id="sb0">–</b></div>
+      <div class="sb-i">Quý II <b id="sb1">–</b></div>
+      <div class="sb-i">Quý III <b id="sb2">–</b></div>
+      <div class="sb-i">Quý IV <b id="sb3">–</b></div>
+      <div class="sb-sep"></div>
+      <div class="sb-i sb-total">TB năm <b id="sbAvg">–</b></div>
+      <span id="sbRank" class="badge b-none" style="margin-left:auto">Chưa có điểm</span>
+    </div>
+  </main>
+</div>
+
+<input type="file" id="jsonInp" accept=".json" hidden />
+<div id="toasts"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   1. HẰNG SỐ & TRẠNG THÁI
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const STORAGE_KEY = 'kbnn13_xeploai_ccnld_v1';
+const QR = ['I', 'II', 'III', 'IV'];
+const TABS = ['t1', 't2', 't3', 't4', 't5', 't6'];
+const RANKS = ['Hoàn thành xuất sắc nhiệm vụ', 'Hoàn thành tốt nhiệm vụ', 'Hoàn thành nhiệm vụ', 'Không hoàn thành nhiệm vụ'];
+const RANK_CLS = ['b-xs', 'b-tot', 'b-ht', 'b-k'];
+const SUBS = [
+  { k: 'I1', max: 5, t: 'Phẩm chất chính trị, đạo đức, văn hóa thực thi công vụ' },
+  { k: 'I2', max: 5, t: 'Ý thức kỷ luật, kỷ cương trong thực thi công vụ' },
+  { k: 'II1', max: 2.5, t: 'Năng lực chuyên môn, nghiệp vụ theo vị trí việc làm' },
+  { k: 'II2', max: 2.5, t: 'Khả năng đáp ứng nhiệm vụ thường xuyên, đột xuất' },
+  { k: 'II3', max: 2.5, t: 'Tinh thần trách nhiệm trong thực thi công vụ' },
+  { k: 'II4', max: 2.5, t: 'Thái độ phục vụ, phối hợp với đồng nghiệp' },
+  { k: 'III1', max: 2.5, t: 'Sản phẩm, giải pháp đột phá, sáng tạo' },
+  { k: 'III2', max: 2.5, t: 'Sẵn sàng nhận nhiệm vụ đặc biệt, đột xuất, khó khăn' },
+  { k: 'III3', max: 2.5, t: 'Chịu trách nhiệm trước kết quả, khắc phục sai sót' },
+  { k: 'III4', max: 2.5, t: 'Chủ động quyết định, tiên phong nhiệm vụ mới' },
+];
+const SUB_BY = Object.fromEntries(SUBS.map(s => [s.k, s]));
+
+function newQ() { return { chung: '', pct: '', kqnv: '', note: '', doc: null, xls: null }; }
+function defaultState() {
+  return {
+    v: 1,
+    info: { hoTen: '', chucVu: '', donVi: '', doiTuong: 'cc', nam: '2026', dec: ',', capTren: 'KHO BẠC NHÀ NƯỚC', tenDonVi: 'KHO BẠC NHÀ NƯỚC KHU VỰC XIII', diaDanh: 'Đà Nẵng', ngayTu: '', ngayCap: '', nguoiCap: '' },
+    q: [newQ(), newQ(), newQ(), newQ()],
+    rank: { self: 'auto', cap: '', deXuat: '', avgNote: '', cond: { suyThoai: false, kyLuat: false, thamNhung: false, duoi6: false, dauDon: false, tapThe: '' } },
+    log: [],
+    ui: { tab: 't1', qd: 0 },
+  };
+}
+function normalizeState(p) {
+  const d = defaultState();
+  if (!p || typeof p !== 'object') return d;
+  Object.keys(d.info).forEach(k => { if (p.info && p.info[k] !== undefined && p.info[k] !== null) d.info[k] = String(p.info[k]); });
+  if (Array.isArray(p.q)) p.q.slice(0, 4).forEach((x, i) => {
+    if (!x || typeof x !== 'object') return;
+    ['chung', 'pct', 'kqnv', 'note'].forEach(k => { if (x[k] !== undefined && x[k] !== null) d.q[i][k] = String(x[k]); });
+    d.q[i].doc = x.doc && typeof x.doc === 'object' ? x.doc : null;
+    d.q[i].xls = x.xls && typeof x.xls === 'object' ? x.xls : null;
+  });
+  if (p.rank && typeof p.rank === 'object') {
+    ['self', 'cap', 'deXuat', 'avgNote'].forEach(k => { if (p.rank[k] !== undefined && p.rank[k] !== null) d.rank[k] = String(p.rank[k]); });
+    if (p.rank.cond) Object.keys(d.rank.cond).forEach(k => { if (p.rank.cond[k] !== undefined) d.rank.cond[k] = k === 'tapThe' ? String(p.rank.cond[k]) : !!p.rank.cond[k]; });
+  }
+  d.log = Array.isArray(p.log) ? p.log.slice(0, 40) : [];
+  if (p.ui && typeof p.ui === 'object') {
+    if (TABS.includes(p.ui.tab)) d.ui.tab = p.ui.tab;
+    if ([0, 1, 2, 3].includes(+p.ui.qd)) d.ui.qd = +p.ui.qd;
+  }
+  return d;
+}
+let S = loadState();
+function loadState() { try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? normalizeState(JSON.parse(raw)) : defaultState(); } catch (e) { return defaultState(); } }
+function save() {
+  let ok = true;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch (e) { ok = false; /* bộ nhớ trình duyệt không khả dụng – vẫn dùng được, chỉ không tự lưu */ }
+  const el = document.getElementById('saveState');
+  if (el) { el.textContent = ok ? '✓ Đã lưu' : '⚠ Không tự lưu được'; el.classList.toggle('bad', !ok); el.title = ok ? 'Dữ liệu tự lưu trên trình duyệt này' : 'Trình duyệt chặn bộ nhớ – hãy dùng “Lưu sao lưu” để giữ dữ liệu'; }
+}
+
+/* =====================================================================
+   2. TIỆN ÍCH SỐ & CHUỖI
+   ===================================================================== */
+function rnd(x) { return Math.round(+(+x).toFixed(6)); }          // làm tròn nửa lên, khử sai số dấu phẩy động
+function r2(n) { return rnd(n * 100) / 100; }
+function parseNum(v) {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+  const s = String(v).trim().replace(/\s+/g, '').replace(',', '.');
+  if (!s || !/^-?\d*\.?\d+$/.test(s)) return null;
+  const n = Number(s); return Number.isFinite(n) ? n : null;
+}
+function fmtN(n, opt = {}) {
+  if (n === null || n === undefined || !Number.isFinite(+n)) return '';
+  let s = opt.fixed ? r2(+n).toFixed(2) : String(r2(+n));
+  return (opt.dec || S.info.dec) === ',' ? s.replace('.', ',') : s;
+}
+function fmt3(n) { const s = String(+(+n).toFixed(4)); return S.info.dec === ',' ? s.replace('.', ',') : s; }
+function pctS(frac) { return frac === null || frac === undefined || !Number.isFinite(frac) ? '–' : fmtN(frac * 100) + '%'; }
+function mean(a) { const v = a.filter(x => x !== null && x !== undefined && Number.isFinite(x)); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null; }
+function nd(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().replace(/\s+/g, ' ').trim(); }
+function esc(s) { return String(s === undefined || s === null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+function colIdx(c) { let n = 0; for (const ch of c) n = n * 26 + (ch.charCodeAt(0) - 64); return n - 1; }
+function colName(i) { let s = ''; i++; while (i > 0) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; }
+function romanQ(s) { s = String(s).toLowerCase(); return { i: 1, ii: 2, iii: 3, iv: 4, 1: 1, 2: 2, 3: 3, 4: 4 }[s] || null; }
+function toast(msg, type = 'info') { const t = document.createElement('div'); t.className = `toast ${type}`; t.textContent = msg; $('toasts').appendChild(t); setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 4200); }
+function rankByScore100(v100) { return v100 >= 9000 ? 0 : v100 >= 7000 ? 1 : v100 >= 5000 ? 2 : 3; }
+function rankBadge(idx, extra = '') { return idx === null || idx === undefined ? `<span class="badge b-none">${extra || 'Chưa xếp loại'}</span>` : `<span class="badge ${RANK_CLS[idx]}">${RANKS[idx]}</span>`; }
+
+/* =====================================================================
+   3. TÍNH ĐIỂM
+   ===================================================================== */
+// KQNV từ % quý: làm tròn % 2 chữ số → × 70 → làm tròn 2 chữ số (92,85 → 64,995 → 65,00)
+function kqFromPct(p) {
+  const pc = rnd(p * 100);                // phần trăm, đơn vị 0,01%
+  const kq100 = rnd(pc * 70 / 100);       // điểm, đơn vị 0,01
+  return Math.max(0, Math.min(kq100, 7000)) / 100;
+}
+function qVals(i) {
+  const Q = S.q[i];
+  const chung = parseNum(Q.chung), pct = parseNum(Q.pct);
+  let kq = null, kqSrc = '';
+  if (pct !== null) { kq = pct >= 0 ? kqFromPct(pct) : null; kqSrc = 'pct'; }
+  else { kq = parseNum(Q.kqnv); kqSrc = kq !== null ? 'nhap' : ''; }
+  const chungValid = chung !== null && chung >= 0 && chung <= 30;
+  const kqValid = kq !== null && kq >= 0 && kq <= 70 && (pct === null || pct >= 0);
+  const ok = chungValid && kqValid;
+  const tot100 = ok ? rnd(chung * 100) + rnd(kq * 100) : null;
+  return { chung, pct, kq, kqSrc, ok, tot100, tot: ok ? tot100 / 100 : null };
+}
+function annual() {
+  const v = [0, 1, 2, 3].map(qVals);
+  const used = [0, 1, 2, 3].filter(i => v[i].ok);
+  if (!used.length) return { n: 0, used, v };
+  const sum100 = used.reduce((s, i) => s + v[i].tot100, 0);
+  const avg100 = rnd(sum100 / used.length);
+  return { n: used.length, used, v, sum100, avg100, avg: avg100 / 100, rawAvg: sum100 / used.length / 100, rankIdx: rankByScore100(avg100) };
+}
+function finalRank() {
+  const A = annual(), c = S.rank.cond, steps = [];
+  if (!A.n) return { idx: null, A, steps: [{ t: 'Trạng thái', v: 'Chưa có quý nào đủ điểm hợp lệ (tiêu chí chung + KQNV).' }], label: 'Chưa có điểm' };
+  steps.push({ t: 'Điểm trung bình', v: `${fmtN(A.avg)} điểm (${A.n} quý)` });
+  steps.push({ t: 'Mức theo điểm', v: RANKS[A.rankIdx] });
+  if (c.duoi6) { steps.push({ t: 'Trường hợp đặc biệt', v: 'Chưa đủ 06 tháng công tác → không xếp loại (Điều 11 k1)' }); return { idx: null, A, steps, label: 'Không xếp loại', notRated: true }; }
+  let idx = A.rankIdx;
+  const forced = [c.suyThoai && 'suy thoái/vi phạm nêu gương', c.kyLuat && 'bị kỷ luật từ khiển trách', c.thamNhung && 'đơn vị phụ trách liên quan tham nhũng'].filter(Boolean);
+  if (forced.length) { idx = 3; steps.push({ t: 'Điều 20 khoản 4', v: 'Không hoàn thành nhiệm vụ do ' + forced.join(', ') }); }
+  if (c.dauDon && c.tapThe !== '' && idx < +c.tapThe) { idx = +c.tapThe; steps.push({ t: 'Điều 20 khoản 6', v: 'Không cao hơn tập thể → ' + RANKS[idx] }); }
+  steps.push({ t: 'Mức đề xuất', v: RANKS[idx] });
+  return { idx, A, steps, label: RANKS[idx] };
+}
+
+/* =====================================================================
+   4. ĐỌC FILE OFFICE (.docx / .xlsx) – không cần thư viện ngoài
+   ===================================================================== */
+const CRC_TABLE = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+const ENC = new TextEncoder();
+function zipStore(files) {
+  const parts = [], central = []; let offset = 0;
+  const d = new Date();
+  const dt = ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1)) & 0xFFFF;
+  const dd = (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xFFFF;
+  files.forEach(f => {
+    const name = ENC.encode(f.name), data = typeof f.data === 'string' ? ENC.encode(f.data) : f.data, crc = crc32(data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+    lh.setUint16(10, dt, true); lh.setUint16(12, dd, true); lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true);
+    lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), name, data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true);
+    ch.setUint16(12, dt, true); ch.setUint16(14, dd, true); ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true);
+    ch.setUint16(28, name.length, true); ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), name);
+    offset += 30 + name.length + data.length;
+  });
+  const cdSize = central.reduce((s, a) => s + a.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true); end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, new Uint8Array(end.buffer)], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+}
+async function unzip(buf) {
+  const u8 = new Uint8Array(buf), dv = new DataView(buf), dec = new TextDecoder();
+  let eocd = -1;
+  for (let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  if (eocd < 0) throw new Error('Không phải tệp Office mới hợp lệ (.docx/.xlsx). Nếu là .doc/.xls, hãy mở và “Lưu thành” định dạng mới.');
+  const n = dv.getUint16(eocd + 10, true); let p = dv.getUint32(eocd + 16, true);
+  const entries = {};
+  for (let i = 0; i < n; i++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true), nlen = dv.getUint16(p + 28, true), xlen = dv.getUint16(p + 30, true), clen = dv.getUint16(p + 32, true), lho = dv.getUint32(p + 42, true);
+    entries[dec.decode(u8.subarray(p + 46, p + 46 + nlen))] = { method, csize, lho };
+    p += 46 + nlen + xlen + clen;
+  }
+  const bytes = async name => {
+    const e = entries[name]; if (!e) return null;
+    const start = e.lho + 30 + dv.getUint16(e.lho + 26, true) + dv.getUint16(e.lho + 28, true);
+    const raw = u8.subarray(start, start + e.csize);
+    if (e.method === 0) return raw;
+    if (e.method !== 8) throw new Error('Kiểu nén không hỗ trợ.');
+    if (typeof DecompressionStream === 'undefined') throw new Error('Trình duyệt quá cũ – hãy dùng Chrome/Edge bản mới để đọc file.');
+    const ds = new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return new Uint8Array(await new Response(ds).arrayBuffer());
+  };
+  return { names: Object.keys(entries), text: async name => { const b = await bytes(name); return b ? dec.decode(b) : null; } };
+}
+const xmlDoc = s => new DOMParser().parseFromString(s, 'application/xml');
+const byTag = (el, name) => [...el.getElementsByTagNameNS('*', name)];
+
+async function readXlsx(z) {
+  const ss = [];
+  const sst = await z.text('xl/sharedStrings.xml');
+  if (sst) byTag(xmlDoc(sst), 'si').forEach(si => ss.push(byTag(si, 't').filter(t => t.parentNode.localName !== 'rPh').map(t => t.textContent).join('')));
+  const wb = xmlDoc(await z.text('xl/workbook.xml'));
+  const relsTxt = await z.text('xl/_rels/workbook.xml.rels');
+  const relMap = {};
+  if (relsTxt) byTag(xmlDoc(relsTxt), 'Relationship').forEach(r => { relMap[r.getAttribute('Id')] = r.getAttribute('Target'); });
+  const sheets = [];
+  for (const s of byTag(wb, 'sheet')) {
+    const rid = s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id') || s.getAttribute('r:id');
+    let target = relMap[rid]; if (!target) continue;
+    target = target.startsWith('/') ? target.slice(1) : 'xl/' + target.replace(/^\.\//, '');
+    const sx = await z.text(target); if (!sx) continue;
+    const rows = [];
+    byTag(xmlDoc(sx), 'row').forEach(r => {
+      const cells = {};
+      byTag(r, 'c').forEach(c => {
+        const ref = c.getAttribute('r') || ''; const col = ref.replace(/\d+/g, ''); if (!col) return;
+        const t = c.getAttribute('t'), vEl = byTag(c, 'v')[0]; let v = null;
+        if (t === 's' && vEl) v = ss[+vEl.textContent];
+        else if (t === 'inlineStr') v = byTag(c, 't').map(x => x.textContent).join('');
+        else if (t === 'e') v = { err: vEl ? vEl.textContent : '#ERR' };
+        else if (t === 'str') v = vEl ? vEl.textContent : '';
+        else if (t === 'b') v = vEl ? vEl.textContent === '1' : null;
+        else if (vEl) v = +vEl.textContent;
+        const f = byTag(c, 'f')[0];
+        cells[col] = { v, f: f ? (f.textContent || '(shared)') : null };
+      });
+      rows.push({ r: +r.getAttribute('r'), cells });
+    });
+    rows.sort((a, b) => a.r - b.r);
+    sheets.push({ name: s.getAttribute('name'), state: s.getAttribute('state') || 'visible', rows });
+  }
+  return sheets;
+}
+const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+async function readDocx(z) {
+  const x = await z.text('word/document.xml'); if (!x) throw new Error('Không tìm thấy nội dung văn bản.');
+  const body = xmlDoc(x).getElementsByTagNameNS(W_NS, 'body')[0];
+  const ptext = p => { let s = ''; for (const el of p.getElementsByTagNameNS(W_NS, '*')) { const n = el.localName; if (n === 't') s += el.textContent; else if (n === 'tab') s += ' '; else if (n === 'br' || n === 'cr') s += '\n'; } return s.replace(/\u00a0/g, ' '); };
+  const blocks = [];
+  for (const el of body.children) {
+    if (el.localName === 'p') blocks.push({ type: 'p', text: ptext(el) });
+    else if (el.localName === 'tbl') {
+      const rows = [];
+      for (const tr of el.children) if (tr.localName === 'tr') {
+        const cells = [];
+        for (const tc of tr.children) if (tc.localName === 'tc') cells.push(byTag(tc, 'p').filter(p => p.namespaceURI === W_NS).map(ptext).filter(t => t.trim()).join('\n'));
+        rows.push(cells);
+      }
+      blocks.push({ type: 'tbl', rows });
+    }
+  }
+  const lines = blocks.filter(b => b.type === 'p').flatMap(b => b.text.split('\n')).map(t => t.trim()).filter(Boolean);
+  const all = blocks.map(b => b.type === 'p' ? b.text : b.rows.map(r => r.join(' | ')).join('\n')).join('\n');
+  return { blocks, lines, all };
+}
+
+/* =====================================================================
+   5. NHẬP FILE – NHẬN DẠNG & PHÂN TÍCH
+   ===================================================================== */
+function logImport(name, lv, msg) { S.log.unshift({ name, lv, msg, time: new Date().toLocaleString('vi-VN') }); S.log = S.log.slice(0, 40); }
+function quarterFromText(a) {
+  const m = /ky theo doi[^)\n]{0,40}?quy\s*(iv|i{1,3}|[1-4])(?![a-z0-9])/.exec(a) || /(?<![a-z])quy\s*(iv|i{1,3}|[1-4])(?![a-z0-9])/.exec(a);
+  return m ? romanQ(m[1]) : null;
+}
+function quarterFromName(fname) {
+  const a = nd(fname);
+  const m = /(?<![a-z])quy\s*[-_]?\s*(iv|i{1,3}|[1-4])(?![a-z0-9])/.exec(a) || /(?<![a-z])q\s*[-_]?\s*([1-4])(?![0-9])/.exec(a);
+  return m ? romanQ(m[1]) : null;
+}
+function yearFromText(a) { const m = /quy\s*(?:iv|i{1,3}|[1-4])\s*[-–\/ ]?\s*(?:nam\s*)?(20\d{2})/.exec(a) || /nam\s*(20\d{2})/.exec(a); return m ? m[1] : ''; }
+function checkPerson(name, src, warns) {
+  if (!name) return;
+  if (!S.info.hoTen.trim()) S.info.hoTen = name.trim();
+  else if (nd(name) !== nd(S.info.hoTen)) warns.push(`${src}: họ tên trong file là “${name.trim()}”, khác họ tên đang chấm “${S.info.hoTen.trim()}” – kiểm tra có nạp nhầm file của người khác không.`);
+}
+function fillIfEmpty(k, v) { if (v && !String(S.info[k] || '').trim()) S.info[k] = v.trim(); }
+
+async function handleFiles(fileList) {
+  const files = [...fileList]; if (!files.length) return;
+  let okN = 0;
+  for (const f of files) {
+    try {
+      const ext = (f.name.split('.').pop() || '').toLowerCase();
+      if (ext === 'doc' || ext === 'xls') throw new Error('Định dạng cũ (.doc/.xls). Mở bằng Word/Excel → Lưu thành .docx/.xlsx rồi nạp lại.');
+      if (ext === 'json') { S = normalizeState(JSON.parse(await f.text())); logImport(f.name, 'ok', 'Đã mở tệp sao lưu.'); okN++; continue; }
+      const z = await unzip(await f.arrayBuffer());
+      if (z.names.includes('word/document.xml')) { const [lv, msg] = importMau1(await readDocx(z), f.name); logImport(f.name, lv, msg); }
+      else if (z.names.includes('xl/workbook.xml')) { const [lv, msg] = importBieu(await readXlsx(z), f.name); logImport(f.name, lv, msg); }
+      else throw new Error('Không phải file Word/Excel.');
+      okN++;
+    } catch (e) { console.error(e); logImport(f.name, 'bad', e.message || String(e)); }
+  }
+  save(); syncInputs(); buildQuarterTable(); update();
+  toast(`Đã xử lý ${files.length} file (${okN} thành công). Xem nhật ký nạp file và mục Rà soát.`, okN === files.length ? 'success' : 'error');
+}
+
+/* --- Phiếu theo dõi, đánh giá công chức/NLĐ – Mẫu 01 (.docx) --- */
+function importMau1(d, fname) {
+  const a = nd(d.all);
+  if (!a.includes('phieu theo doi, danh gia') && !a.includes('phieu theo doi danh gia')) throw new Error('Không phải “Phiếu theo dõi, đánh giá” (Mẫu 01).');
+  const qT = quarterFromText(a), qN = quarterFromName(fname);
+  const q = qT || qN; if (!q) throw new Error('Không xác định được quý trong phiếu (cần dòng “Kỳ theo dõi, đánh giá: Quý …”).');
+  const warns = [], y = yearFromText(a);
+  if (qT && qN && qT !== qN) warns.push(`Phiếu Q${QR[q - 1]}: tên file ghi quý ${qN} nhưng nội dung phiếu là Quý ${qT} – đã lấy theo nội dung.`);
+  if (y && y !== String(S.info.nam).trim()) warns.push(`Phiếu Q${QR[q - 1]}: kỳ đánh giá năm ${y}, khác năm đang xếp loại ${S.info.nam}.`);
+  // Bảng tiêu chí chung
+  const tbl = d.blocks.find(b => b.type === 'tbl' && b.rows.some(r => r.some(c => nd(c).includes('tieu chi cham diem'))));
+  const sub = {}, grp = {}; let g = null, totalRow = null;
+  if (tbl) tbl.rows.forEach(r => {
+    const c0 = (r[0] || '').trim(), last = parseNum((r[r.length - 1] || '').trim());
+    if (/^(I|II|III)$/.test(c0)) { g = c0; grp[g] = last; }
+    else if (/^[1-4]$/.test(c0) && g && SUB_BY[g + c0]) { if (last !== null) sub[g + c0] = last; }
+    else if (nd(c0).startsWith('tong cong')) totalRow = last;
+  });
+  const grab = re => { const m = re.exec(a); return m ? parseNum(m[1]) : null; };
+  const chung = grab(/diem tieu chi chung\s*:\s*(\d+(?:[.,]\d+)?)/);
+  const kqnv = grab(/diem tieu chi ket qua thuc hien nhiem vu\s*:\s*(\d+(?:[.,]\d+)?)/);
+  const tong = grab(/tong diem theo doi[^:]*:\s*(\d+(?:[.,]\d+)?)/);
+  const L = `Phiếu Q${QR[q - 1]}`;
+  SUBS.forEach(s => { if (sub[s.k] !== undefined && sub[s.k] > s.max) warns.push(`${L}: tiêu chí ${s.k.replace(/^(I+)(\d)$/, '$1.$2')} chấm ${fmtN(sub[s.k])} vượt tối đa ${fmtN(s.max)}.`); });
+  ['I', 'II', 'III'].forEach(G => {
+    const ks = SUBS.filter(s => s.k.replace(/\d$/, '') === G);
+    if (ks.every(s => sub[s.k] === undefined) || grp[G] === null || grp[G] === undefined) return;
+    const s = r2(ks.reduce((acc, x) => acc + (sub[x.k] || 0), 0));
+    if (Math.abs(s - grp[G]) > 0.001) warns.push(`${L}: nhóm ${G} ghi ${fmtN(grp[G])} nhưng cộng các tiêu chí con = ${fmtN(s)}.`);
+  });
+  const subSum = r2(SUBS.reduce((acc, s) => acc + (sub[s.k] || 0), 0));
+  if (totalRow !== null && Object.keys(sub).length === 10 && Math.abs(subSum - totalRow) > 0.001) warns.push(`${L}: dòng “Tổng cộng” ghi ${fmtN(totalRow)} nhưng cộng 10 tiêu chí = ${fmtN(subSum)}.`);
+  if (chung !== null && totalRow !== null && Math.abs(chung - totalRow) > 0.001) warns.push(`${L}: mục “1. Điểm tiêu chí chung” (${fmtN(chung)}) khác dòng “Tổng cộng” của bảng (${fmtN(totalRow)}).`);
+  if (chung !== null && kqnv !== null && tong !== null && Math.abs(r2(chung + kqnv) - tong) > 0.001) warns.push(`${L}: tổng điểm ghi ${fmtN(tong)} nhưng ${fmtN(chung)} + ${fmtN(kqnv)} = ${fmtN(r2(chung + kqnv))}.`);
+  const chungUse = chung !== null ? chung : totalRow;
+  if (chungUse === null) throw new Error(`${L}: không đọc được điểm tiêu chí chung.`);
+  // Thông tin cá nhân
+  const getAfter = re => { const l = d.lines.find(x => re.test(nd(x))); return l && l.includes(':') ? l.slice(l.indexOf(':') + 1).trim() : ''; };
+  checkPerson(getAfter(/^ho va ten/), L, warns);
+  fillIfEmpty('chucVu', getAfter(/^chuc vu/)); fillIfEmpty('donVi', getAfter(/^don vi cong tac/));
+  // Ghi dữ liệu
+  const Q = S.q[q - 1];
+  Q.chung = fmtN(chungUse);
+  if (kqnv !== null) Q.kqnv = fmtN(kqnv);
+  Q.doc = { file: fname, chung: chungUse, kqnv, tong, sub, grp, year: y, warns };
+  return [warns.length ? 'wn' : 'ok', `${L}${y ? '/' + y : ''}: tiêu chí chung ${fmtN(chungUse)}/30 (${Object.keys(sub).length}/10 tiêu chí con), KQNV ghi trên phiếu ${kqnv !== null ? fmtN(kqnv) : '?'}, tổng ${tong !== null ? fmtN(tong) : '?'}.${warns.length ? ` ⚠ ${warns.length} điểm cần rà soát.` : ''}`];
+}
+
+/* --- Biểu chấm điểm tiêu chí kết quả thực hiện nhiệm vụ (.xlsx) --- */
+function cellTxt(c) { return c && c.v !== null && c.v !== undefined && typeof c.v !== 'object' ? String(c.v) : ''; }
+function cellNum(c) { return c && typeof c.v === 'number' ? c.v : (c && typeof c.v === 'string' ? parseNum(c.v) : null); }
+function rowCells(row) { return Object.keys(row.cells).map(col => ({ col, i: colIdx(col), c: row.cells[col] })).sort((a, b) => a.i - b.i); }
+function importBieu(sheets, fname) {
+  const isBieu = sh => sh.rows.some(r => Object.values(r.cells).some(c => { const t = nd(cellTxt(c)); return t.includes('diem theo bo tieu chi') || t.startsWith('diem tieu chi ket qua thuc hien nhiem vu quy'); }));
+  const cand = sheets.filter(isBieu);
+  if (!cand.length) throw new Error('Không tìm thấy biểu chấm điểm tiêu chí kết quả thực hiện nhiệm vụ trong file.');
+  const sh = cand.find(s => s.state === 'visible') || cand[0];
+  const warns = [];
+  let title = '', name = '', hdr = -1, colE = null, qVal = null, qNoCache = false;
+  const months = {}, monthNoCache = [], recalcRows = {};
+  // Tiêu đề, họ tên, dòng tiêu đề cột
+  for (let i = 0; i < sh.rows.length; i++) {
+    const rc = rowCells(sh.rows[i]);
+    rc.forEach((x, k) => {
+      const t = nd(cellTxt(x.c));
+      if (!title && t.includes('cham diem tieu chi ket qua')) title = t;
+      if (!name && /^ho va ten/.test(t)) {
+        const raw = cellTxt(x.c);
+        name = raw.includes(':') && raw.slice(raw.indexOf(':') + 1).trim() ? raw.slice(raw.indexOf(':') + 1).trim() : (rc.slice(k + 1).map(y => cellTxt(y.c).trim()).find(Boolean) || '');
+      }
+      if (hdr < 0 && t.includes('diem theo bo tieu chi')) { hdr = i; colE = x.i; }
+    });
+  }
+  // Cột chấm điểm (tìm theo tiêu đề cột, dự phòng theo vị trí mẫu chuẩn)
+  let colF = null, colI = null, colL = null;
+  if (hdr >= 0) {
+    for (let i = hdr; i < Math.min(sh.rows.length, hdr + 3); i++) rowCells(sh.rows[i]).forEach(x => {
+      const t = nd(cellTxt(x.c));
+      if (t === 'hoan thanh' && colF === null) colF = x.i;
+      if (t.startsWith('so lan khong dat') && colI === null) colI = x.i;
+      if (t.startsWith('so lan cham muon') && colL === null) colL = x.i;
+    });
+  }
+  const canRecalc = hdr >= 0 && colF !== null && colI !== null && colL !== null;
+  let month = null;
+  for (let i = Math.max(hdr + 1, 0); i < sh.rows.length; i++) {
+    const row = sh.rows[i], rc = rowCells(row);
+    const texts = rc.filter(x => typeof x.c.v === 'string' && x.c.v.trim());
+    const rowStr = nd(texts.map(x => x.c.v).join(' '));
+    const lab = texts.length ? nd(texts[0].c.v) : '';
+    if (lab.startsWith('diem tieu chi ket qua thuc hien nhiem vu')) {
+      const head = lab.split('=')[0];
+      const numCell = rc.find(x => x.i > texts[0].i && typeof x.c.v === 'number');
+      const fCell = rc.find(x => x.i > texts[0].i && x.c.f);
+      const v = numCell ? numCell.c.v : null;
+      if (/quy/.test(head)) { qVal = v; if (v === null && fCell) qNoCache = true; }
+      else { const mm = /thang\s*(\d{1,2})/.exec(head); if (mm) { if (v !== null) months[+mm[1]] = v; else if (fCell) monthNoCache.push(+mm[1]); } }
+      continue;
+    }
+    const mh = /cham diem.*thang\s*(\d{1,2})/.exec(rowStr);
+    if (mh) { month = +mh[1]; continue; }
+    if (/cham diem.*trong quy/.test(rowStr)) { month = null; continue; }
+    if (lab.startsWith('tong diem') || !month || !canRecalc) continue;
+    const E = cellNum(row.cells[colName(colE)]);
+    if (!(E > 0)) continue;
+    let F = cellNum(row.cells[colName(colF)]);
+    if (F === null) { warns.push(`Biểu xlsx – dòng ${row.r}: chưa nhập số “Hoàn thành”, tạm tính bằng 0.`); F = 0; }
+    const I = cellNum(row.cells[colName(colI)]) || 0, Lc = cellNum(row.cells[colName(colL)]) || 0;
+    (recalcRows[month] = recalcRows[month] || []).push({ E, F, I, L: Lc, r: row.r });
+  }
+  // Tính lại theo Điều 14, 16 NĐ 335 (mỗi lần không đạt / chậm muộn trừ 25%)
+  const recalc = {};
+  Object.keys(recalcRows).forEach(m => {
+    let sE = 0, sF = 0, sJ = 0, sM = 0;
+    recalcRows[m].forEach(d => { const G = d.E - d.F; sE += d.E; sF += d.F; sJ += G > 0 ? 0 : d.E - d.I * 0.25 * d.E; sM += G > 0 ? 0 : d.E - d.L * 0.25 * d.E; if (d.L >= 5 || d.I >= 5) warns.push(`Biểu xlsx – dòng ${d.r}: từ 5 lần chậm/không đạt trở lên làm điểm dòng bị âm theo công thức Excel – kiểm tra lại.`); });
+    if (sE > 0) recalc[m] = ((sF / sE) + (sJ / sE) + (sM / sE)) / 3;
+  });
+  // Quý
+  const mqT = /quy\s*(iv|i{1,3}|[1-4])(?![a-z0-9])/.exec(title), qT = mqT ? romanQ(mqT[1]) : null;
+  const mKeys = Object.keys(months).length ? Object.keys(months) : Object.keys(recalc);
+  const qM = mKeys.length ? Math.ceil(+mKeys[0] / 3) : null, qN = quarterFromName(fname), qS = quarterFromName(sh.name);
+  const q = qT || qM || qN;
+  if (!q) throw new Error('Không xác định được quý của biểu chấm điểm.');
+  const L = `Biểu xlsx Q${QR[q - 1]}`;
+  if (qT && qM && qT !== qM) warns.push(`${L}: tiêu đề ghi Quý ${qT} nhưng các tháng chấm điểm thuộc Quý ${qM}.`);
+  if (qS && qS !== q) warns.push(`${L}: tên sheet “${sh.name}” ghi quý ${qS}, khác quý thực tế ${q} – nên sửa tên sheet cho thống nhất.`);
+  if (qN && qN !== q) warns.push(`${L}: tên file ghi quý ${qN}, khác quý trong nội dung (${q}).`);
+  const y = (/nam\s*(20\d{2})/.exec(title) || [])[1] || '';
+  if (y && y !== String(S.info.nam).trim()) warns.push(`${L}: biểu năm ${y}, khác năm đang xếp loại ${S.info.nam}.`);
+  if (qNoCache || monthNoCache.length) warns.push(`${L}: ô công thức chưa có giá trị lưu sẵn (file chưa được Excel tính lại) – đã dùng kết quả tính lại. Nên mở file bằng Excel, lưu lại rồi nạp lại.`);
+  // Đối chiếu file và tính lại
+  Object.keys(months).forEach(m => { if (recalc[m] !== undefined && Math.abs(recalc[m] - months[m]) > 0.00005) warns.push(`${L} – tháng ${m}: file ghi ${pctS(months[m])} nhưng tính lại từ các dòng = ${pctS(recalc[m])} (kiểm tra phạm vi SUM / ô bị ghi đè công thức).`); });
+  const mFile = mean(Object.values(months));
+  if (qVal !== null && mFile !== null && Math.abs(qVal - mFile) > 0.00005) warns.push(`${L}: điểm quý trong file ${pctS(qVal)} khác trung bình 3 tháng ${pctS(mFile)}.`);
+  if (Object.keys(months).length && Object.keys(months).length !== 3) warns.push(`${L}: chỉ có ${Object.keys(months).length} tháng có điểm (cần đủ 3 tháng trong quý).`);
+  let raw = qVal !== null ? qVal : mFile !== null ? mFile : mean(Object.values(recalc));
+  let how = qVal !== null ? 'ô điểm quý trong file' : mFile !== null ? 'trung bình điểm các tháng trong file' : 'tính lại từ các dòng chấm điểm';
+  if (raw === null) throw new Error(`${L}: không đọc được điểm KQNV của quý.`);
+  if (raw > 1.5) raw = raw / 100;   // ô đã nhập dạng 92,85 thay vì 92,85%
+  if (raw > 1) warns.push(`${L}: % KQNV quý = ${pctS(raw)} vượt 100% – điểm KQNV giới hạn tối đa 70.`);
+  const warnsP = []; checkPerson(name, L, warnsP); warns.push(...warnsP);
+  const Q = S.q[q - 1];
+  const pct = r2(raw * 100);
+  Q.pct = fmtN(pct);
+  Q.xls = { file: fname, sheet: sh.name, raw, pct, how, months, recalc, year: y, warns };
+  return [warns.length ? 'wn' : 'ok', `${L}${y ? '/' + y : ''} (sheet “${sh.name}”): ${Object.keys(months).map(m => `T${m} ${pctS(months[m])}`).join(' · ') || 'không có điểm tháng'} → quý ${fmt3(raw * 100)}% ≈ ${fmtN(pct)}% → KQNV = ${fmt3(pct * 0.7)} ≈ ${fmtN(kqFromPct(pct), { fixed: true })}.${warns.length ? ` ⚠ ${warns.length} điểm cần rà soát.` : ''}`];
+}
+
+/* =====================================================================
+   6. GIAO DIỆN
+   ===================================================================== */
+function syncInputs() {
+  document.querySelectorAll('[data-info]').forEach(el => { el.value = S.info[el.dataset.info] ?? ''; });
+  document.querySelectorAll('[data-rank]').forEach(el => { el.value = S.rank[el.dataset.rank] ?? ''; });
+  document.querySelectorAll('[data-cond]').forEach(el => { const k = el.dataset.cond; if (el.type === 'checkbox') el.checked = !!S.rank.cond[k]; else el.value = S.rank.cond[k] ?? ''; });
+}
+function buildQuarterTable() {
+  $('qBody').innerHTML = QR.map((r, i) => `<tr>
+    <td class="c" style="vertical-align:middle;white-space:nowrap"><b>Quý ${r}</b></td>
+    <td><input class="inp sm score" data-q="${i}" data-f="chung" placeholder="0 – 30" inputmode="decimal" /></td>
+    <td><input class="inp sm score" data-q="${i}" data-f="pct" placeholder="—" title="% điểm KQNV của quý (vd 92,85). Để trống nếu nhập thẳng điểm KQNV." inputmode="decimal" /></td>
+    <td><input class="inp sm score" data-q="${i}" data-f="kqnv" placeholder="0 – 70" inputmode="decimal" /><div class="basis" id="kqb${i}"></div></td>
+    <td class="c" style="vertical-align:middle"><b class="tot" id="tot${i}">–</b><div id="qr${i}" style="margin-top:3px"></div></td>
+    <td id="src${i}" style="vertical-align:middle"></td>
+    <td><input class="inp sm" data-q="${i}" data-f="note" placeholder="${i === 3 ? 'vd: KQNV ước tính đến 31/12/2026' : ''}" /></td>
+    <td class="c" style="vertical-align:middle"><button class="btn btn-ghost btn-xs" data-clear="${i}" title="Xóa dữ liệu quý ${r}">Xóa</button></td>
+  </tr>`).join('');
+  document.querySelectorAll('[data-q]').forEach(el => { const i = +el.dataset.q, f = el.dataset.f; el.value = S.q[i][f] ?? ''; });
+}
+function renderQuarters() {
+  const A = annual();
+  QR.forEach((r, i) => {
+    const Q = S.q[i], x = A.v[i];
+    const kEl = document.querySelector(`[data-q="${i}"][data-f="kqnv"]`);
+    if (x.pct !== null && x.pct >= 0) {
+      kEl.readOnly = true;
+      kEl.value = fmtN(x.kq, { fixed: true });
+      kEl.title = 'Tính tự động từ % KQNV (xóa ô % để nhập tay)';
+    } else {
+      if (kEl.readOnly) { kEl.readOnly = false; kEl.value = Q.kqnv; }
+      kEl.title = '';
+    }
+    $('kqb' + i).textContent = (x.pct !== null && x.pct >= 0)
+      ? `${fmtN(x.pct)}% × 70 = ${fmt3(rnd(x.pct * 100) / 100 * 0.7)} → ${fmtN(x.kq, { fixed: true })}${x.pct > 100 ? ' (tối đa 70)' : ''}`
+      : (x.kq !== null ? (Q.doc && Q.doc.kqnv !== null && Math.abs(Q.doc.kqnv - x.kq) < 0.001 ? 'theo phiếu docx' : 'nhập tay') : '');
+    $('tot' + i).textContent = x.ok ? fmtN(x.tot) : '–';
+    $('qr' + i).innerHTML = x.ok ? `<span class="badge ${RANK_CLS[rankByScore100(x.tot100)]}" style="font-size:10.5px;padding:1px 7px">${['HTXS', 'HTT', 'HT', 'KHT'][rankByScore100(x.tot100)]}</span>` : '';
+    const chips = [];
+    if (Q.doc) chips.push(`<span class="chip d" title="${esc(Q.doc.file)}">Phiếu docx</span>`);
+    if (Q.xls) chips.push(`<span class="chip x" title="${esc(Q.xls.file)}">Biểu xlsx</span>`);
+    const edited = (Q.doc && x.chung !== null && Math.abs(Q.doc.chung - x.chung) > 0.001) || (Q.xls && x.pct !== null && Math.abs(Q.xls.pct - x.pct) > 0.001) || (!Q.doc && Q.chung !== '') || (!Q.xls && x.kqSrc === 'nhap' && !(Q.doc && Q.doc.kqnv !== null && Math.abs(Q.doc.kqnv - x.kq) < 0.001));
+    if (edited) chips.push('<span class="chip m">Sửa tay</span>');
+    $('src' + i).innerHTML = chips.join('') || '<span class="muted small">—</span>';
+    ['chung', 'pct', 'kqnv'].forEach(f => {
+      const el = document.querySelector(`[data-q="${i}"][data-f="${f}"]`), raw = f === 'kqnv' && el.readOnly ? '' : el.value, n = parseNum(raw);
+      const bad = raw.trim() !== '' && (n === null || n < 0 || (f === 'chung' && n > 30) || (f === 'kqnv' && n > 70) || (f === 'pct' && n > 200));
+      el.classList.toggle('invalid', bad);
+    });
+  });
+  $('avgVal').textContent = A.n ? fmtN(A.avg) : '–';
+  $('avgHow').textContent = A.n ? `= (${A.used.map(i => fmtN(A.v[i].tot)).join(' + ')}) / ${A.n}${Math.abs(A.rawAvg - A.avg) > 1e-9 ? ' = ' + fmt3(A.rawAvg) + ' → ' + fmtN(A.avg, { fixed: true }) : ''}` : '';
+}
+function qStatus(i) {
+  const Q = S.q[i], x = qVals(i);
+  if (x.ok) return 'ok';
+  return (Q.doc || Q.xls || Q.chung.trim() || Q.pct.trim() || Q.kqnv.trim()) ? 'err' : '';
+}
+function renderDetails() {
+  const i = S.ui.qd, r = QR[i], Q = S.q[i], x = qVals(i);
+  $('qdSeg').innerHTML = QR.map((q, k) => `<button class="${k === i ? 'on' : ''}" data-qd="${k}">Quý ${q}<span class="dot ${qStatus(k)}"></span></button>`).join('');
+  const head = `<div class="callout ${x.ok ? 'info' : 'warn'}" style="margin-bottom:14px">${x.ok
+    ? `<b>Quý ${r}:</b> tiêu chí chung ${fmtN(x.chung)} + KQNV ${fmtN(x.kq, { fixed: true })} = <b>${fmtN(x.tot)} điểm</b> (${RANKS[rankByScore100(x.tot100)].toLowerCase()} nếu xét riêng quý).`
+    : `<b>Quý ${r}:</b> chưa đủ điểm hợp lệ – quý này chưa được tính vào điểm năm.`}</div>`;
+  const docBox = Q.doc ? detailDoc(Q.doc) : `<div class="qd"><h4>Phiếu Mẫu 01 (.docx)</h4><div class="muted small">Chưa nạp phiếu quý này. Nạp ở Bước 1 hoặc nhập tay tiêu chí chung ở bảng trên.</div></div>`;
+  const xlsBox = Q.xls ? detailXls(Q.xls) : `<div class="qd"><h4>Biểu chấm điểm (.xlsx)</h4><div class="muted small">Chưa nạp biểu quý này.${x.kqSrc === 'nhap' ? ` KQNV đang lấy theo phiếu docx/nhập tay (${fmtN(x.kq)}).` : ''}</div></div>`;
+  $('qDetails').innerHTML = head + `<div class="qd-grid" style="margin-top:0">${docBox}${xlsBox}</div>`;
+}
+function detailDoc(D) {
+  let h = `<div class="qd has-data"><h4>Phiếu Mẫu 01 (.docx)</h4><div class="src">${esc(D.file)}</div>`;
+  ['I', 'II', 'III'].forEach(G => {
+    const ks = SUBS.filter(s => s.k.replace(/\d$/, '') === G);
+    const parts = ks.map(s => D.sub && D.sub[s.k] !== undefined ? fmtN(D.sub[s.k]) : '?').join(' · ');
+    h += `<div class="row"><span>Nhóm ${G} <span class="muted small">(${parts})</span></span><b>${D.grp && D.grp[G] !== null && D.grp[G] !== undefined ? fmtN(D.grp[G]) : '?'}/10</b></div>`;
+  });
+  h += `<div class="row"><span>Tiêu chí chung · KQNV · Tổng ghi trên phiếu</span><b>${fmtN(D.chung)} · ${D.kqnv !== null ? fmtN(D.kqnv) : '?'} · ${D.tong !== null ? fmtN(D.tong) : '?'}</b></div>`;
+  (D.warns || []).forEach(w => { h += `<div class="w">⚠ ${esc(w)}</div>`; });
+  return h + '</div>';
+}
+function detailXls(X) {
+  let h = `<div class="qd has-data"><h4>Biểu chấm điểm (.xlsx)</h4><div class="src">${esc(X.file)} › ${esc(X.sheet)}</div>`;
+  Object.keys(X.months || {}).forEach(m => {
+    const rc = X.recalc && X.recalc[m] !== undefined ? X.recalc[m] : null;
+    h += `<div class="row"><span>Tháng ${m}${rc !== null ? ` <span class="muted small">(tính lại ${pctS(rc)})</span>` : ''}</span><b>${pctS(X.months[m])}</b></div>`;
+  });
+  h += `<div class="row"><span>Điểm KQNV quý (${esc(X.how)})</span><b>${fmt3(X.raw * 100)}% → ${fmtN(X.pct)}%</b></div>`;
+  h += `<div class="row"><span>× 70, làm tròn 2 chữ số</span><b>${fmt3(X.pct * 0.7)} → ${fmtN(kqFromPct(X.pct), { fixed: true })}</b></div>`;
+  (X.warns || []).forEach(w => { h += `<div class="w">⚠ ${esc(w)}</div>`; });
+  return h + '</div>';
+}
+function renderMatrix() {
+  const cell = o => o
+    ? `<span class="mx-ok">✓</span> <span class="mx-f" title="${esc(o.file)}">${esc(o.file)}</span>${(o.warns || []).length ? ` <span class="chip m">${o.warns.length} cảnh báo</span>` : ''}`
+    : '<span class="muted">Chưa nạp</span>';
+  $('matrix').innerHTML = QR.map((r, i) => {
+    const Q = S.q[i], x = qVals(i);
+    return `<tr class="mx-row" data-qd="${i}" data-go="t3" title="Xem chi tiết Quý ${r}">
+      <td class="c"><b>Quý ${r}</b></td><td>${cell(Q.doc)}</td><td>${cell(Q.xls)}</td>
+      <td class="c">${x.chung !== null ? fmtN(x.chung) : '–'}</td><td class="c">${x.kq !== null ? fmtN(x.kq, { fixed: true }) : '–'}</td>
+      <td class="c"><b>${x.ok ? fmtN(x.tot) : '–'}</b></td></tr>`;
+  }).join('');
+}
+function renderScorebar() {
+  const FR = finalRank(), A = FR.A;
+  QR.forEach((r, i) => { $('sb' + i).textContent = A.v[i].ok ? fmtN(A.v[i].tot) : '–'; });
+  $('sbAvg').textContent = A.n ? fmtN(A.avg) : '–';
+  const b = $('sbRank');
+  b.textContent = FR.notRated ? 'Không xếp loại' : (A.n ? RANKS[FR.idx] : 'Chưa có điểm');
+  b.className = 'badge ' + (A.n && !FR.notRated ? RANK_CLS[FR.idx] : 'b-none');
+}
+function renderNav(ne, nw) {
+  const I = S.info, A = annual(), FR = finalRank();
+  const anyFile = S.q.some(Q => Q.doc || Q.xls);
+  const hasBad = [0, 1, 2, 3].some(i => qStatus(i) === 'err');
+  const st = {
+    t1: !anyFile ? '' : S.q.every(Q => Q.doc) ? 'ok' : 'warn',
+    t2: !I.hoTen.trim() ? 'err' : (I.chucVu.trim() && I.donVi.trim()) ? 'ok' : 'warn',
+    t3: hasBad ? 'err' : A.n === 4 ? 'ok' : A.n ? 'warn' : '',
+    t4: FR.notRated || (A.n && FR.idx !== null) ? 'ok' : '',
+    t5: ne ? 'err' : nw ? 'warn' : 'ok',
+    t6: I.hoTen.trim() && A.n ? (ne ? 'warn' : 'ok') : '',
+  };
+  TABS.forEach(t => { $('dot-' + t).className = 'dot ' + st[t]; });
+  $('pillIssues').textContent = `${ne} lỗi · ${nw} cảnh báo`;
+  $('exportWarn').textContent = ne ? `⚠ Hồ sơ còn ${ne} lỗi – vẫn in/xuất được nhưng nên xử lý ở Bước 5.` : '';
+}
+function go(tab) {
+  if (!TABS.includes(tab)) tab = 't1';
+  const changed = S.ui.tab !== tab;
+  S.ui.tab = tab;
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('hidden', p.id !== tab));
+  document.querySelectorAll('.step-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  $('scorebar').classList.toggle('hidden', !['t3', 't4'].includes(tab));
+  save();
+  if (changed) window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function renderRank() {
+  const FR = finalRank(), A = FR.A;
+  $('kAvg').innerHTML = A.n ? `${fmtN(A.avg)}<small> /100</small>` : '–';
+  $('kAvgS').textContent = A.n ? `Tổng ${fmtN(A.sum100 / 100)} ÷ ${A.n} quý` : 'Chưa có quý đủ điểm';
+  $('kN').innerHTML = `${A.n}<small>/4</small>`;
+  $('kNS').textContent = A.n ? 'Quý ' + A.used.map(i => QR[i]).join(', ') : '';
+  $('kRankScore').innerHTML = A.n ? rankBadge(A.rankIdx) : '–';
+  $('kRankFinal').innerHTML = FR.notRated ? '<span class="badge b-none">Không xếp loại</span>' : (A.n ? rankBadge(FR.idx) : '–');
+  $('flow').innerHTML = A.n ? FR.steps.map((s, k) => `${k ? '<div class="arrow">→</div>' : ''}<div class="fs"><div class="t">${esc(s.t)}</div><div class="v">${esc(s.v)}</div></div>`).join('') : '';
+  $('pillAvg').textContent = A.n ? fmtN(A.avg) : '–';
+  const pr = $('pillRank');
+  pr.textContent = FR.notRated ? 'Không xếp loại' : (A.n ? RANKS[FR.idx] : 'Chưa có điểm');
+  pr.className = 'badge ' + (A.n && !FR.notRated ? RANK_CLS[FR.idx] : 'b-none');
+  $('hdrYear').textContent = S.info.nam || '';
+}
+function selfIdx(FR) { const v = S.rank.self; if (v === 'auto') return FR.notRated ? null : FR.idx; return v === '' ? null : +v; }
+function capIdx(FR) { const v = S.rank.cap; if (v === 'auto') return FR.notRated ? null : FR.idx; return v === '' ? null : +v; }
+
+function checks() {
+  const L = [], I = S.info, A = annual(), FR = finalRank();
+  if (!I.hoTen.trim()) L.push(['err', 'Chưa nhập họ và tên.']);
+  if (!I.chucVu.trim()) L.push(['warn', 'Chưa nhập chức vụ, chức danh.']);
+  if (!I.donVi.trim()) L.push(['warn', 'Chưa nhập đơn vị công tác.']);
+  QR.forEach((r, i) => {
+    const Q = S.q[i], x = A.v[i];
+    const has = Q.chung.trim() !== '' || Q.pct.trim() !== '' || Q.kqnv.trim() !== '';
+    const badChungTxt = Q.chung.trim() !== '' && x.chung === null;
+    const badPctTxt = Q.pct.trim() !== '' && x.pct === null;
+    const badKqTxt = Q.pct.trim() === '' && Q.kqnv.trim() !== '' && x.kq === null;
+    if (badChungTxt) L.push(['err', `Quý ${r}: điểm tiêu chí chung “${Q.chung}” không phải số hợp lệ.`]);
+    if (badPctTxt) L.push(['err', `Quý ${r}: % KQNV “${Q.pct}” không phải số hợp lệ.`]);
+    if (badKqTxt) L.push(['err', `Quý ${r}: điểm KQNV “${Q.kqnv}” không phải số hợp lệ.`]);
+    if (!has) L.push(['warn', `Quý ${r}: chưa có dữ liệu.${i === 3 ? ' Theo hướng dẫn KBNN KV XIII: Quý IV chấm điểm KQNV đến hết 20/11/2026, ước tính kết quả đến 31/12/2026.' : ''}`]);
+    else if (!x.ok && !badChungTxt && !badPctTxt && !badKqTxt) {
+      if (x.chung === null) L.push(['err', `Quý ${r}: thiếu điểm tiêu chí chung (nạp Phiếu Mẫu 01) – quý này chưa được tính vào điểm năm.`]);
+      else if (x.kq === null && (x.pct === null || x.pct >= 0)) L.push(['err', `Quý ${r}: thiếu điểm KQNV (nạp biểu xlsx hoặc nhập tay) – quý này chưa được tính vào điểm năm.`]);
+    }
+    if (x.chung !== null && (x.chung < 0 || x.chung > 30)) L.push(['err', `Quý ${r}: tiêu chí chung ${fmtN(x.chung)} ngoài khoảng 0 – 30 (quý này không được tính vào điểm năm).`]);
+    if (x.pct !== null && x.pct < 0) L.push(['err', `Quý ${r}: % KQNV ${fmtN(x.pct)}% không được âm (quý này không được tính vào điểm năm).`]);
+    if (x.kqSrc === 'nhap' && x.kq !== null && (x.kq < 0 || x.kq > 70)) L.push(['err', `Quý ${r}: KQNV ${fmtN(x.kq)} ngoài khoảng 0 – 70 (quý này không được tính vào điểm năm).`]);
+    if (x.pct !== null && x.pct > 100) L.push(['warn', `Quý ${r}: % KQNV ${fmtN(x.pct)}% vượt 100% – KQNV đã giới hạn ở 70 điểm (Điều 12 khoản 3).`]);
+    if (Q.doc && Q.doc.kqnv !== null && x.kqSrc === 'pct' && x.kq !== null && Math.abs(Q.doc.kqnv - x.kq) > 0.005) L.push(['warn', `Quý ${r}: KQNV ghi trên phiếu docx (${fmtN(Q.doc.kqnv)}) khác KQNV tính từ biểu xlsx (${fmtN(x.kq, { fixed: true })}) – đang dùng số từ xlsx; nên sửa phiếu Mẫu 01 cho thống nhất.`]);
+    if (Q.doc && Q.doc.tong !== null && x.ok && Math.abs(Q.doc.tong - x.tot) > 0.005) L.push(['warn', `Quý ${r}: tổng điểm ghi trên phiếu (${fmtN(Q.doc.tong)}) khác tổng điểm đang tính (${fmtN(x.tot)}).`]);
+    if (Q.doc && x.chung !== null && Math.abs(Q.doc.chung - x.chung) > 0.001) L.push(['info', `Quý ${r}: tiêu chí chung đã sửa tay thành ${fmtN(x.chung)} (phiếu ghi ${fmtN(Q.doc.chung)}).`]);
+    if (Q.xls && x.pct !== null && Math.abs(Q.xls.pct - x.pct) > 0.001) L.push(['info', `Quý ${r}: % KQNV đã sửa tay thành ${fmtN(x.pct)}% (biểu xlsx: ${fmtN(Q.xls.pct)}%).`]);
+    if (Q.doc && !Q.xls && x.kqSrc !== 'pct' && x.ok) L.push(['info', `Quý ${r}: chưa có biểu xlsx – KQNV lấy theo phiếu docx/nhập tay (${fmtN(x.kq)}).`]);
+    [...((Q.doc && Q.doc.warns) || []), ...((Q.xls && Q.xls.warns) || [])].forEach(w => L.push(['warn', w]));
+  });
+  if (A.n && A.n < 4) L.push(['info', `Điểm năm đang là trung bình ${A.n} quý (Quý ${A.used.map(i => QR[i]).join(', ')}). Mẫu CV 8267 quy định trung bình cộng 04 quý; chỉ tính theo thời gian thực tế khi nghỉ ốm, thai sản, chuyển công tác… (Điều 11 k2, Điều 19 k1, k3 NĐ 335) – ghi rõ lý do ở ô ghi chú dòng tổng năm.`]);
+  if (A.n === 1 && !S.rank.cond.duoi6) L.push(['warn', 'Mới có 01 quý đủ điểm: nếu thời gian công tác thực tế trong năm chưa đủ 06 tháng thì không xếp loại (Điều 11 khoản 1).']);
+  if (A.n) {
+    const gaps = [9000, 7000, 5000].map(t => A.avg100 - t).filter(g => g >= 0 && g < 50);
+    if (gaps.length) {
+      const th = fmtN((A.avg100 - gaps[0]) / 100);
+      L.push(['info', gaps[0] === 0
+        ? `Điểm năm ${fmtN(A.avg)} đúng bằng ngưỡng ${th} điểm – rà soát kỹ số liệu các quý trước khi trình.`
+        : `Điểm năm ${fmtN(A.avg)} chỉ cao hơn ngưỡng ${th} là ${fmtN(gaps[0] / 100)} điểm – rà soát kỹ số liệu các quý trước khi trình.`]);
+    }
+    const s = selfIdx(FR), c = capIdx(FR);
+    if (!FR.notRated && s !== null && s < FR.idx) L.push(['warn', `Mục II: tự xếp loại “${RANKS[s]}” cao hơn mức theo điểm/điều kiện (“${RANKS[FR.idx]}”).`]);
+    if (!FR.notRated && c !== null && c < FR.idx) L.push(['warn', `Mục III: kết quả cấp có thẩm quyền “${RANKS[c]}” cao hơn mức theo điểm/điều kiện (“${RANKS[FR.idx]}”).`]);
+    if (FR.idx === 0 && !FR.notRated) L.push(['info', 'Mức Hoàn thành xuất sắc nhiệm vụ bị khống chế: số HTXS không vượt quá 20% số được xếp loại Hoàn thành tốt trong cùng đơn vị, nhóm nhiệm vụ tương đồng (tối đa 25% nếu tổ chức có thành tích nổi trội) – Điều 20 khoản 5. Cấp có thẩm quyền quyết định cuối cùng.']);
+    if (FR.idx === 3 && !S.rank.deXuat.trim()) L.push(['warn', 'Xếp loại Không hoàn thành nhiệm vụ: nên ghi Mục IV “Đề xuất phương án xử lý” (Điều 23 NĐ 335).']);
+  }
+  if (S.rank.cond.dauDon && S.rank.cond.tapThe === '') L.push(['warn', 'Đã đánh dấu là người đứng đầu nhưng chưa chọn mức xếp loại của tập thể.']);
+  return L;
+}
+function renderChecks() {
+  const L = checks(), order = { err: 0, warn: 1, info: 2, ok: 3 };
+  L.sort((a, b) => order[a[0]] - order[b[0]]);
+  const ne = L.filter(x => x[0] === 'err').length, nw = L.filter(x => x[0] === 'warn').length;
+  if (!ne && !nw) L.unshift(['ok', 'Không phát hiện lỗi. Hồ sơ đủ điều kiện in/xuất phiếu.']);
+  $('chkSum').textContent = `${ne} lỗi · ${nw} cảnh báo · ${L.filter(x => x[0] === 'info').length} lưu ý`;
+  const ic = { err: '!', warn: '!', info: 'i', ok: '✓' };
+  $('checks').innerHTML = L.map(([lv, m]) => `<div class="chk ${lv}"><div class="ic">${ic[lv]}</div><div>${esc(m)}</div></div>`).join('');
+  return [ne, nw];
+}
+function renderLog() {
+  const ic = { ok: '✓', wn: '!', bad: '✕' };
+  $('log').innerHTML = S.log.map(l => `<div class="log-i ${l.lv}"><div class="st">${ic[l.lv] || '•'}</div><div><b>${esc(l.name)}</b> <span class="muted small">${esc(l.time)}</span><div>${esc(l.msg)}</div></div></div>`).join('');
+  $('logEmpty').classList.toggle('hidden', S.log.length > 0);
+  $('btnClearLog').classList.toggle('hidden', !S.log.length);
+}
+
+/* =====================================================================
+   7. PHIẾU XẾP LOẠI (mô hình dùng chung cho xem trước & Word)
+   ===================================================================== */
+function dateLine(iso) {
+  const dd = S.info.diaDanh.trim() || '.....';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  return m ? `${dd}, ngày ${m[3]} tháng ${m[2]} năm ${m[1]}` : `${dd}, ngày .... tháng ..... năm .....`;
+}
+function phieuModel() {
+  const I = S.info, who = I.doiTuong === 'nld' ? 'NGƯỜI LAO ĐỘNG' : 'CÔNG CHỨC', FR = finalRank(), A = FR.A;
+  const avgNote = S.rank.avgNote.trim() || (A.n && A.n < 4 ? `Trung bình cộng ${A.n} quý (Quý ${A.used.map(i => QR[i]).join(', ')})` : '');
+  return {
+    capTren: I.capTren.trim(), tenDonVi: I.tenDonVi.trim(),
+    title: `PHIẾU XẾP LOẠI CHẤT LƯỢNG ${who}`, nam: I.nam.trim() || '........',
+    hoTen: I.hoTen.trim(), chucVu: I.chucVu.trim(), donVi: I.donVi.trim(),
+    rows: QR.map((r, i) => ({ q: r, tong: A.v[i].ok ? fmtN(A.v[i].tot) : '', note: S.q[i].note.trim() })),
+    avg: A.n ? fmtN(A.avg) : '', avgNote,
+    secII: `II. ${who} TỰ ĐÁNH GIÁ, XẾP LOẠI CHẤT LƯỢNG`,
+    secIII: `III. KẾT QUẢ XẾP LOẠI CHẤT LƯỢNG CỦA CẤP CÓ THẨM QUYỀN ${who}`,
+    secIV: 'IV. ĐỀ XUẤT PHƯƠNG ÁN XỬ LÝ',
+    self: selfIdx(FR), cap: capIdx(FR), deXuat: S.rank.deXuat.trim(),
+    signSelfDate: dateLine(I.ngayTu), signSelfTitle: `${who} TỰ XẾP LOẠI`,
+    signCapDate: dateLine(I.ngayCap), nguoiCap: I.nguoiCap.trim(),
+    footnote: 'Tổng điểm trung bình cả năm bằng điểm trung bình cộng 04 quý trong năm.',
+  };
+}
+const DOTS = '.'.repeat(200);
+function renderPhieu() {
+  const M = phieuModel();
+  const box = on => `<span class="bx">${on ? '☒' : '☐'}</span>`;
+  const boxes = sel => RANKS.map((t, k) => `<p class="ph-box">${box(sel === k)}${t}</p>`).join('');
+  const infoRow = (lbl, val) => val
+    ? `<p>${lbl}: ${esc(val)}</p>`
+    : `<div class="ph-info-row"><span>${lbl}:</span><span class="ph-fill"></span></div>`;
+  const p1 = `<div class="paper p1">
+    <div class="ph-head">
+      <div><div>${esc(M.capTren)}</div><div style="font-size:12pt"><b>${esc(M.tenDonVi)}</b></div><div class="rule"></div></div>
+      <div><div><b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b></div><div style="font-size:14pt"><b>Độc lập - Tự do - Hạnh phúc</b></div><div class="rule w"></div></div>
+    </div>
+    <p class="ph-title">${esc(M.title)}</p>
+    <p class="ph-year">Năm ${esc(M.nam)}</p>
+    <div class="ph-info">
+      ${infoRow('Họ và tên', M.hoTen)}
+      ${infoRow('Chức vụ, chức danh', M.chucVu)}
+      ${infoRow('Đơn vị công tác', M.donVi)}
+    </div>
+    <p class="ph-sec">I. TỔNG HỢP KẾT QUẢ THEO DÕI, ĐÁNH GIÁ</p>
+    <table class="ph-tbl"><colgroup><col style="width:26%"><col style="width:44%"><col style="width:30%"></colgroup>
+      <tr><th>Quý</th><th>Tổng điểm theo dõi, đánh giá</th><th>Ghi chú</th></tr>
+      ${M.rows.map(r => `<tr><td>${r.q}</td><td>${esc(r.tong)}</td><td style="font-size:12pt">${esc(r.note)}</td></tr>`).join('')}
+      <tr><td><b>Tổng điểm trung bình cả năm<sup>1</sup></b></td><td><b>${esc(M.avg)}</b></td><td style="font-size:12pt">${esc(M.avgNote)}</td></tr>
+    </table>
+    <p class="ph-sec">${esc(M.secII)}</p>
+    ${boxes(M.self)}
+    <div class="ph-sign"><div></div><div class="s"><i>${esc(M.signSelfDate)}</i><br><b>${esc(M.signSelfTitle)}</b><br><i>(Ký tên, ghi rõ họ tên)</i><div class="gap"></div><b>${esc(M.hoTen)}</b></div></div>
+    <div class="ph-fn"><div class="fr"></div><sup>1</sup> ${esc(M.footnote)}</div>
+  </div>`;
+  const p2 = `<div class="paper">
+    <p class="ph-sec" style="margin-top:0">${esc(M.secIII)}</p>
+    ${boxes(M.cap)}
+    <p class="ph-sec">${esc(M.secIV)}</p>
+    ${M.deXuat ? `<p class="ph-pre">${esc(M.deXuat)}</p>` : `<p class="ph-dots">${DOTS}</p><p class="ph-dots">${DOTS}</p>`}
+    <div class="ph-sign"><div></div><div class="s"><i>${esc(M.signCapDate)}</i><br><b>CẤP CÓ THẨM QUYỀN XẾP LOẠI</b><br><i>(Ký tên, ghi rõ họ tên)</i><div class="gap"></div><b>${M.nguoiCap ? esc(M.nguoiCap) : '...................'}</b></div></div>
+  </div>`;
+  $('phieu').innerHTML = p1 + p2;
+}
+
+/* ---------- Xuất Word (.docx) ---------- */
+function xe(s) { return String(s === undefined || s === null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function R(t, o = {}) {
+  let pr = '';
+  if (o.font) pr += `<w:rFonts w:ascii="${o.font}" w:hAnsi="${o.font}" w:eastAsia="${o.font}" w:cs="${o.font}"/>`;
+  if (o.b) pr += '<w:b/><w:bCs/>';
+  if (o.i) pr += '<w:i/><w:iCs/>';
+  if (o.sz) pr += `<w:sz w:val="${o.sz}"/><w:szCs w:val="${o.sz}"/>`;
+  return `<w:r>${pr ? `<w:rPr>${pr}</w:rPr>` : ''}<w:t xml:space="preserve">${xe(t)}</w:t></w:r>`;
+}
+const FNREF = '<w:r><w:rPr><w:rStyle w:val="FootnoteReference"/><w:b/><w:bCs/></w:rPr><w:footnoteReference w:id="1"/></w:r>';
+function P(runs, o = {}) {
+  let pr = '';
+  if (o.keepNext) pr += '<w:keepNext/>';
+  if (o.pageBreak) pr += '<w:pageBreakBefore/>';
+  if (o.rule) pr += '<w:pBdr><w:top w:val="single" w:sz="6" w:space="1" w:color="000000"/></w:pBdr>';
+  pr += `<w:spacing w:before="${o.before || 0}" w:after="${o.after || 0}" w:line="${o.line || 276}" w:lineRule="auto"/>`;
+  if (o.ind) pr += `<w:ind w:left="${o.ind[0]}" w:right="${o.ind[1]}"/>`;
+  if (o.jc) pr += `<w:jc w:val="${o.jc}"/>`;
+  if (o.markSz) pr += `<w:rPr><w:sz w:val="${o.markSz}"/><w:szCs w:val="${o.markSz}"/></w:rPr>`;
+  return `<w:p><w:pPr>${pr}</w:pPr>${Array.isArray(runs) ? runs.join('') : (runs || '')}</w:p>`;
+}
+function TC(content, w, o = {}) { return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/><w:vAlign w:val="${o.v || 'center'}"/></w:tcPr>${content || P('')}</w:tc>`; }
+function TR(cells, h) { return `<w:tr><w:trPr>${h ? `<w:trHeight w:val="${h}" w:hRule="atLeast"/>` : ''}</w:trPr>${cells.join('')}</w:tr>`; }
+function TBL(widths, rows, borders) {
+  const sides = ['top', 'left', 'bottom', 'right', 'insideH', 'insideV'];
+  const b = sides.map(s => borders ? `<w:${s} w:val="single" w:sz="4" w:space="0" w:color="000000"/>` : `<w:${s} w:val="nil"/>`).join('');
+  const total = widths.reduce((s, x) => s + x, 0);
+  return `<w:tbl><w:tblPr><w:tblW w:w="${total}" w:type="dxa"/><w:jc w:val="center"/><w:tblBorders>${b}</w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="85" w:type="dxa"/><w:right w:w="85" w:type="dxa"/></w:tblCellMar><w:tblLook w:val="0000"/></w:tblPr><w:tblGrid>${widths.map(w => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>${rows.join('')}</w:tbl>`;
+}
+function buildDocx() {
+  const M = phieuModel();
+  const BOX = on => R(on ? '☒' : '☐', { font: 'MS Gothic' });
+  const boxes = sel => RANKS.map((t, k) => P([BOX(sel === k), R('  ' + t)], { before: 40, after: 40, ind: [284, 0] })).join('');
+  const dots = n => '.'.repeat(n);
+  const head = TBL([4500, 5500], [TR([
+    TC(P(R(M.capTren, { sz: 26 }), { jc: 'center', line: 240 }) + P(R(M.tenDonVi, { b: true, sz: 24 }), { jc: 'center', line: 240 }) + P('', { rule: true, ind: [1400, 1400], markSz: 4, line: 240 }), 4500, { v: 'top' }),
+    TC(P(R('CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', { b: true, sz: 26 }), { jc: 'center', line: 240 }) + P(R('Độc lập - Tự do - Hạnh phúc', { b: true, sz: 28 }), { jc: 'center', line: 240 }) + P('', { rule: true, ind: [1100, 1100], markSz: 4, line: 240 }), 5500, { v: 'top' }),
+  ])], false);
+  const cellP = (t, o = {}) => P(R(t, o), { jc: 'center', line: 240 });
+  const tblRows = [TR([TC(cellP('Quý', { b: true }), 2400), TC(cellP('Tổng điểm theo dõi, đánh giá', { b: true }), 4155), TC(cellP('Ghi chú', { b: true }), 2800)], 560)];
+  M.rows.forEach(r => tblRows.push(TR([TC(cellP(r.q), 2400), TC(cellP(r.tong), 4155), TC(cellP(r.note, { sz: 24 }), 2800)], 560)));
+  tblRows.push(TR([TC(P([R('Tổng điểm trung bình cả năm', { b: true }), FNREF], { jc: 'center', line: 240 }), 2400), TC(cellP(M.avg, { b: true }), 4155), TC(cellP(M.avgNote, { sz: 24 }), 2800)], 640));
+  const sign = (dateTxt, title, name) => TBL([3500, 5855], [TR([TC(P(''), 3500, { v: 'top' }), TC(
+    P(R(dateTxt, { i: true }), { jc: 'center' }) + P(R(title, { b: true }), { jc: 'center' }) + P(R('(Ký tên, ghi rõ họ tên)', { i: true }), { jc: 'center' }) +
+    P('') + P('') + P('') + P('') + P(R(name, { b: true }), { jc: 'center' }), 5855, { v: 'top' })])], false);
+  const body = [
+    head,
+    P(R(M.title, { b: true }), { jc: 'center', before: 360 }),
+    P(R('Năm ' + M.nam, { b: true }), { jc: 'center', after: 240 }),
+    P([R('Họ và tên: '), R(M.hoTen || dots(95))], { before: 60, after: 60 }),
+    P([R('Chức vụ, chức danh: '), R(M.chucVu || dots(85))], { before: 60, after: 60 }),
+    P([R('Đơn vị công tác: '), R(M.donVi || dots(88))], { before: 60, after: 60 }),
+    P(R('I. TỔNG HỢP KẾT QUẢ THEO DÕI, ĐÁNH GIÁ', { b: true }), { before: 160, after: 120, keepNext: true }),
+    TBL([2400, 4155, 2800], tblRows, true),
+    P(R(M.secII, { b: true }), { before: 240, after: 80, keepNext: true }),
+    boxes(M.self),
+    P('', { before: 120 }),
+    sign(M.signSelfDate, M.signSelfTitle, M.hoTen),
+    P(R(M.secIII, { b: true }), { pageBreak: true, after: 80, keepNext: true }),
+    boxes(M.cap),
+    P(R(M.secIV, { b: true }), { before: 240, after: 80, keepNext: true }),
+    ...(M.deXuat ? M.deXuat.split(/\n/).map(l => P(R(l), { before: 40, after: 40, jc: 'both' })) : [P(R(dots(118)), { before: 80 }), P(R(dots(118)), { before: 80 })]),
+    P('', { before: 120 }),
+    sign(M.signCapDate, 'CẤP CÓ THẨM QUYỀN XẾP LOẠI', M.nguoiCap || '...................'),
+  ].join('');
+  const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:document ${NS}><w:body>${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="850" w:bottom="1134" w:left="1701" w:header="567" w:footer="567" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:styles ${NS}><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:eastAsia="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="vi-VN" w:eastAsia="en-US" w:bidi="ar-SA"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>`
+    + `<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>`
+    + `<w:style w:type="character" w:default="1" w:styleId="DefaultParagraphFont"><w:name w:val="Default Paragraph Font"/><w:uiPriority w:val="1"/><w:semiHidden/><w:unhideWhenUsed/></w:style>`
+    + `<w:style w:type="table" w:default="1" w:styleId="TableNormal"><w:name w:val="Normal Table"/><w:uiPriority w:val="99"/><w:semiHidden/><w:unhideWhenUsed/><w:tblPr><w:tblInd w:w="0" w:type="dxa"/><w:tblCellMar><w:top w:w="0" w:type="dxa"/><w:left w:w="108" w:type="dxa"/><w:bottom w:w="0" w:type="dxa"/><w:right w:w="108" w:type="dxa"/></w:tblCellMar></w:tblPr></w:style>`
+    + `<w:style w:type="paragraph" w:styleId="FootnoteText"><w:name w:val="footnote text"/><w:basedOn w:val="Normal"/><w:uiPriority w:val="99"/><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr><w:rPr><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:style>`
+    + `<w:style w:type="character" w:styleId="FootnoteReference"><w:name w:val="footnote reference"/><w:uiPriority w:val="99"/><w:rPr><w:vertAlign w:val="superscript"/></w:rPr></w:style></w:styles>`;
+  const footnotes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:footnotes ${NS}>`
+    + `<w:footnote w:type="separator" w:id="-1"><w:p><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr><w:r><w:separator/></w:r></w:p></w:footnote>`
+    + `<w:footnote w:type="continuationSeparator" w:id="0"><w:p><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr><w:r><w:continuationSeparator/></w:r></w:p></w:footnote>`
+    + `<w:footnote w:id="1"><w:p><w:pPr><w:pStyle w:val="FootnoteText"/></w:pPr><w:r><w:rPr><w:rStyle w:val="FootnoteReference"/></w:rPr><w:footnoteRef/></w:r><w:r><w:t xml:space="preserve"> ${xe(M.footnote)}</w:t></w:r></w:p></w:footnote></w:footnotes>`;
+  const settings = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:settings ${NS}><w:defaultTabStop w:val="720"/><w:characterSpacingControl w:val="doNotCompress"/><w:footnotePr><w:footnote w:id="-1"/><w:footnote w:id="0"/></w:footnotePr><w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/></w:compat></w:settings>`;
+  const ct = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/><Override PartName="/word/footnotes.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml"/></Types>`;
+  const rels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;
+  const docRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes" Target="footnotes.xml"/></Relationships>`;
+  return zipStore([
+    { name: '[Content_Types].xml', data: ct }, { name: '_rels/.rels', data: rels },
+    { name: 'word/document.xml', data: doc }, { name: 'word/_rels/document.xml.rels', data: docRels },
+    { name: 'word/styles.xml', data: styles }, { name: 'word/settings.xml', data: settings }, { name: 'word/footnotes.xml', data: footnotes },
+  ]);
+}
+function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+function safeName(s) { return String(s || '').replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+
+/* =====================================================================
+   8. SỰ KIỆN
+   ===================================================================== */
+function update() {
+  renderQuarters(); renderDetails(); renderMatrix(); renderRank(); renderScorebar();
+  const [ne, nw] = renderChecks(); renderNav(ne, nw);
+  renderPhieu(); renderLog();
+}
+function onFieldUpdate(e) {
+  const el = e.target;
+  if (el.dataset.info !== undefined) { S.info[el.dataset.info] = el.value; if (el.dataset.info === 'dec') { syncQuarterDisplay(); } }
+  else if (el.dataset.q !== undefined) { const i = +el.dataset.q, f = el.dataset.f; if (f === 'kqnv' && el.readOnly) return; S.q[i][f] = el.value; }
+  else if (el.dataset.rank !== undefined) S.rank[el.dataset.rank] = el.value;
+  else if (el.dataset.cond !== undefined) S.rank.cond[el.dataset.cond] = el.type === 'checkbox' ? el.checked : el.value;
+  else return;
+  save(); update();
+}
+// Chrome/Edge phát sự kiện 'input' cho cả ô chọn, ô đánh dấu, ô ngày → chỉ cần một bộ nghe (tránh cập nhật 2 lần)
+document.addEventListener('input', onFieldUpdate);
+document.addEventListener('click', e => {
+  const qd = e.target.closest('[data-qd]');
+  if (qd) { S.ui.qd = +qd.dataset.qd; save(); renderDetails(); }
+  const g = e.target.closest('[data-go]');
+  if (g) go(g.dataset.go);
+});
+$('btnClearLog').addEventListener('click', () => { S.log = []; save(); renderLog(); });
+function syncQuarterDisplay() {
+  // Đổi dấu thập phân hiển thị cho các ô điểm đang lưu
+  const dec = S.info.dec;
+  S.q.forEach(Q => ['chung', 'pct', 'kqnv'].forEach(f => { const n = parseNum(Q[f]); if (n !== null) Q[f] = dec === ',' ? String(n).replace('.', ',') : String(n); }));
+  document.querySelectorAll('[data-q]').forEach(el => { const i = +el.dataset.q, f = el.dataset.f; if (!(f === 'kqnv' && el.readOnly)) el.value = S.q[i][f] ?? ''; });
+}
+$('qBody').addEventListener('click', e => {
+  const b = e.target.closest('[data-clear]'); if (!b) return;
+  const i = +b.dataset.clear;
+  if (!confirm(`Xóa toàn bộ dữ liệu Quý ${QR[i]} (điểm, ghi chú, thông tin file đã nạp)?`)) return;
+  S.q[i] = newQ(); save(); buildQuarterTable(); update();
+});
+const drop = $('drop'), fileInp = $('fileInp');
+fileInp.addEventListener('change', () => { handleFiles(fileInp.files); fileInp.value = ''; });
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('drop', e => { e.preventDefault(); if (!drop.contains(e.target) && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+$('btnPrint').addEventListener('click', () => window.print());
+$('btnDocx').addEventListener('click', () => {
+  try { download(buildDocx(), `Phieu xep loai chat luong nam ${safeName(S.info.nam)} - ${safeName(S.info.hoTen) || 'chua co ten'}.docx`); toast('Đã xuất phiếu Word.', 'success'); }
+  catch (e) { console.error(e); toast('Lỗi xuất Word: ' + e.message, 'error'); }
+});
+$('btnSaveJson').addEventListener('click', () => download(new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' }), `Sao luu xep loai ${safeName(S.info.nam)} - ${safeName(S.info.hoTen) || 'chua co ten'}.json`));
+$('btnOpenJson').addEventListener('click', () => $('jsonInp').click());
+$('jsonInp').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try { S = normalizeState(JSON.parse(await f.text())); save(); syncInputs(); buildQuarterTable(); update(); toast('Đã mở tệp sao lưu.', 'success'); }
+  catch (err) { toast('Tệp sao lưu không hợp lệ: ' + err.message, 'error'); }
+});
+$('btnReset').addEventListener('click', () => {
+  if (!confirm('Xóa toàn bộ dữ liệu đang chấm (thông tin, điểm 4 quý, xếp loại, nhật ký)? Nên “Lưu sao lưu” trước nếu cần.')) return;
+  S = defaultState(); save(); syncInputs(); buildQuarterTable(); update(); toast('Đã xóa dữ liệu.', 'info');
+});
+
+syncInputs(); buildQuarterTable(); update(); go(S.ui.tab);
+</script>
+</body>
+</html>
